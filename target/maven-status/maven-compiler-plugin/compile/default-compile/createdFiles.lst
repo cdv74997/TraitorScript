@@ -4,6 +4,7 @@ tokenizer/ForToken.class
 tokenizer/IfToken.class
 tokenizer/ElseToken.class
 tokenizer/FuncToken.class
+tokenizer/Tokenizer.class
 tokenizer/SelfToken.class
 tokenizer/MethodToken.class
 tokenizer/ImplToken.class

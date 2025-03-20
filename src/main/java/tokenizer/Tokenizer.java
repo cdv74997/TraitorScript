@@ -1,6 +1,7 @@
 package tokenizer;
 
 import java.util.Optional;
+import java.util.ArrayList;
 
 public class Tokenizer{
     public final String input;

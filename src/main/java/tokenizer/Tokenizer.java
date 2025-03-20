@@ -34,7 +34,7 @@ public class Tokenizer{
             return Optional.of(new RParenToken());
         } else if(input.startsWith(":", position)){
             position++;
-            return Optional.of(new CommaToken());
+            return Optional.of(new ColonToken());
         } else if(input.startsWith("{", position)){
             position++;
             return Optional.of(new LCurlyToken());

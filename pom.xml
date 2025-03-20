@@ -21,10 +21,30 @@
           <encoding>UTF-8</encoding>  
         </configuration>
       </plugin>
+      <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.8</version>
+            <executions>
+                <execution>
+                    <id>prepare-agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                    <phase>initialize</phase>
+                </execution>
+                <execution>
+                    <id>report</id>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                    <phase>prepare-package</phase>
+                </execution>
+            </executions>
+        </plugin>
     </plugins>
   </build>
 
-    <!-- Dependencies for the project -->
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

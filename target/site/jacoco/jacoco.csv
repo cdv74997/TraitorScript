@@ -33,7 +33,7 @@ TraitorScript,tokenizer,ColonToken,3,0,0,0,1,0,1,0,1,0
 TraitorScript,tokenizer,DotToken,3,0,0,0,1,0,1,0,1,0
 TraitorScript,tokenizer,StructToken,3,0,0,0,1,0,1,0,1,0
 TraitorScript,tokenizer,ForToken,3,0,0,0,1,0,1,0,1,0
-TraitorScript,tokenizer,Tokenizer,322,19,37,1,54,7,20,3,1,3
+TraitorScript,tokenizer,Tokenizer,308,33,34,4,52,9,18,5,1,3
 TraitorScript,tokenizer,ImplToken,3,0,0,0,1,0,1,0,1,0
 TraitorScript,tokenizer,IntegerToken,9,0,0,0,1,0,2,0,2,0
 TraitorScript,tokenizer,PrintlnToken,3,0,0,0,1,0,1,0,1,0

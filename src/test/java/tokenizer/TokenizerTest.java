@@ -14,4 +14,18 @@ public class TokenizerTest{
         tokenizer.skipWhitespace();
         assertEquals(0, tokenizer.getPosition());
     }
+
+    @Test
+    public void testSingleWhitespace() {
+        final Tokenizer tokenizer = new Tokenizer(" ");
+        tokenizer.skipWhitespace();
+        assertEquals(1, tokenizer.getPosition());
+    }
+
+    @Test
+    public void testSingleWhitespaceAndA() {
+        final Tokenizer tokenizer = new Tokenizer(" a");
+        tokenizer.skipWhitespace();
+        assertEquals(1, tokenizer.getPosition());
+    }
 }

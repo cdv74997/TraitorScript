@@ -24,61 +24,77 @@ public class Tokenizer{
 <span class="fc" id="L24">    } // skipWhitespace</span>
 
     public Optional&lt;Token&gt; tryReadSymbol(){
-<span class="nc bnc" id="L27" title="All 2 branches missed.">        if(input.startsWith(&quot;,&quot;, position)){</span>
-<span class="nc" id="L28">            position++;</span>
-<span class="nc" id="L29">            return Optional.of(new CommaToken());</span>
-<span class="nc bnc" id="L30" title="All 2 branches missed.">        } else if(input.startsWith(&quot;(&quot;, position)){</span>
-<span class="nc" id="L31">            position++;</span>
-<span class="nc" id="L32">            return Optional.of(new LParenToken());</span>
-<span class="nc bnc" id="L33" title="All 2 branches missed.">        } else if(input.startsWith(&quot;)&quot;, position)){</span>
-<span class="nc" id="L34">            position++;</span>
-<span class="nc" id="L35">            return Optional.of(new RParenToken());</span>
-<span class="nc bnc" id="L36" title="All 2 branches missed.">        } else if(input.startsWith(&quot;:&quot;, position)){</span>
-<span class="nc" id="L37">            position++;</span>
-<span class="nc" id="L38">            return Optional.of(new ColonToken());</span>
-<span class="nc bnc" id="L39" title="All 2 branches missed.">        } else if(input.startsWith(&quot;{&quot;, position)){</span>
-<span class="nc" id="L40">            position++;</span>
-<span class="nc" id="L41">            return Optional.of(new LCurlyToken());</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        } else if(input.startsWith(&quot;}&quot;, position)){</span>
-<span class="nc" id="L43">            position++;</span>
-<span class="nc" id="L44">            return Optional.of(new RCurlyToken());</span>
-<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if(input.startsWith(&quot;;&quot;, position)){</span>
-<span class="nc" id="L46">            position++;</span>
-<span class="nc" id="L47">            return Optional.of(new SemicolonToken());</span>
-<span class="nc bnc" id="L48" title="All 2 branches missed.">        } else if(input.startsWith(&quot;.&quot;, position)){</span>
-<span class="nc" id="L49">            position++;</span>
-<span class="nc" id="L50">            return Optional.of(new DotToken());</span>
-<span class="nc bnc" id="L51" title="All 2 branches missed.">        } else if(input.startsWith(&quot;*&quot;, position)){</span>
-<span class="nc" id="L52">            position++;</span>
-<span class="nc" id="L53">            return Optional.of(new StarToken());</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        } else if(input.startsWith(&quot;/&quot;, position)){</span>
-<span class="nc" id="L55">            position++;</span>
-<span class="nc" id="L56">            return Optional.of(new SlashToken());</span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">        } else if(input.startsWith(&quot;+&quot;, position)){</span>
-<span class="nc" id="L58">            position++;</span>
-<span class="nc" id="L59">            return Optional.of(new PlusToken());</span>
-<span class="nc bnc" id="L60" title="All 2 branches missed.">        } else if(input.startsWith(&quot;-&quot;, position)){</span>
-<span class="nc" id="L61">            position++;</span>
-<span class="nc" id="L62">            return Optional.of(new MinusToken());</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">        } else if(input.startsWith(&quot;&lt;&quot;, position)){</span>
-<span class="nc" id="L64">            position++;</span>
-<span class="nc" id="L65">            return Optional.of(new LessThanToken());</span>
-<span class="nc bnc" id="L66" title="All 2 branches missed.">        } else if(input.startsWith(&quot;=&gt;&quot;, position)){</span>
-<span class="nc" id="L67">            position++;</span>
-<span class="nc" id="L68">            return Optional.of(new RArrowToken());</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">        } else if(input.startsWith(&quot;==&quot;, position)){</span>
-<span class="nc" id="L70">            position++;</span>
-<span class="nc" id="L71">            return Optional.of(new DEqualsToken());</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">        } else if(input.startsWith(&quot;!=&quot;, position)){</span>
-<span class="nc" id="L73">            position++;</span>
-<span class="nc" id="L74">            return Optional.of(new NEqualsToken());</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        } else if(input.startsWith(&quot;=&quot;, position)){</span>
-<span class="nc" id="L76">            position++;</span>
-<span class="nc" id="L77">            return Optional.of(new EqualsToken());</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        if(input.startsWith(&quot;,&quot;, position)){</span>
+<span class="fc" id="L28">            position++;</span>
+<span class="fc" id="L29">            return Optional.of(new CommaToken());</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        } else if(input.startsWith(&quot;(&quot;, position)){</span>
+<span class="fc" id="L31">            position++;</span>
+<span class="fc" id="L32">            return Optional.of(new LParenToken());</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        } else if(input.startsWith(&quot;)&quot;, position)){</span>
+<span class="fc" id="L34">            position++;</span>
+<span class="fc" id="L35">            return Optional.of(new RParenToken());</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        } else if(input.startsWith(&quot;:&quot;, position)){</span>
+<span class="fc" id="L37">            position++;</span>
+<span class="fc" id="L38">            return Optional.of(new ColonToken());</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        } else if(input.startsWith(&quot;{&quot;, position)){</span>
+<span class="fc" id="L40">            position++;</span>
+<span class="fc" id="L41">            return Optional.of(new LCurlyToken());</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        } else if(input.startsWith(&quot;}&quot;, position)){</span>
+<span class="fc" id="L43">            position++;</span>
+<span class="fc" id="L44">            return Optional.of(new RCurlyToken());</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        } else if(input.startsWith(&quot;;&quot;, position)){</span>
+<span class="fc" id="L46">            position++;</span>
+<span class="fc" id="L47">            return Optional.of(new SemicolonToken());</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        } else if(input.startsWith(&quot;.&quot;, position)){</span>
+<span class="fc" id="L49">            position++;</span>
+<span class="fc" id="L50">            return Optional.of(new DotToken());</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        } else if(input.startsWith(&quot;*&quot;, position)){</span>
+<span class="fc" id="L52">            position++;</span>
+<span class="fc" id="L53">            return Optional.of(new StarToken());</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">        } else if(input.startsWith(&quot;/&quot;, position)){</span>
+<span class="fc" id="L55">            position++;</span>
+<span class="fc" id="L56">            return Optional.of(new SlashToken());</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if(input.startsWith(&quot;+&quot;, position)){</span>
+<span class="fc" id="L58">            position++;</span>
+<span class="fc" id="L59">            return Optional.of(new PlusToken());</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">        } else if(input.startsWith(&quot;-&quot;, position)){</span>
+<span class="fc" id="L61">            position++;</span>
+<span class="fc" id="L62">            return Optional.of(new MinusToken());</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        } else if(input.startsWith(&quot;&lt;&quot;, position)){</span>
+<span class="fc" id="L64">            position++;</span>
+<span class="fc" id="L65">            return Optional.of(new LessThanToken());</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">        } else if(input.startsWith(&quot;=&gt;&quot;, position)){</span>
+<span class="fc" id="L67">            position++;</span>
+<span class="fc" id="L68">            return Optional.of(new RArrowToken());</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        } else if(input.startsWith(&quot;==&quot;, position)){</span>
+<span class="fc" id="L70">            position++;</span>
+<span class="fc" id="L71">            return Optional.of(new DEqualsToken());</span>
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        } else if(input.startsWith(&quot;!=&quot;, position)){</span>
+<span class="fc" id="L73">            position++;</span>
+<span class="fc" id="L74">            return Optional.of(new NEqualsToken());</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        } else if(input.startsWith(&quot;=&quot;, position)){</span>
+<span class="fc" id="L76">            position++;</span>
+<span class="fc" id="L77">            return Optional.of(new EqualsToken());</span>
         } else{
 <span class="nc" id="L79">            return Optional.empty();</span>
         }
     } // tryReadSymbol
+
+    public Optional&lt;Token&gt; tryReadInteger(){
+<span class="nc" id="L84">        String digits = &quot;&quot;;</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        while (position &lt; input.length() &amp;&amp;</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">               Character.isDigit(input.charAt(position))) {</span>
+<span class="nc" id="L88">            digits += input.charAt(position);</span>
+<span class="nc" id="L89">            position++;</span>
+        }
+
+<span class="nc bnc" id="L92" title="All 2 branches missed.">        if (digits.length() == 0) {</span>
+<span class="nc" id="L93">            return Optional.empty();</span>
+        } else {
+<span class="nc" id="L95">            return Optional.of(new IntegerToken(Integer.parseInt(digits)));</span>
+        }
+    }// tryReadInteger
     
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

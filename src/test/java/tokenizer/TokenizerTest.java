@@ -130,4 +130,18 @@ public class TokenizerTest{
         final Tokenizer tokenizer = new Tokenizer("=");
         assertEquals(Optional.of(new EqualsToken()), tokenizer.tryReadSymbol());
     }
+
+    @Test
+    public void testSingleDigitIntegerToken(){
+        final Tokenizer tokenizer = new Tokenizer("2");
+        assertEquals(Optional.of(new IntegerToken(2)),
+                     tokenizer.tryReadInteger());
+    }
+
+    @Test
+    public void testDoubleDigitIntegerToken(){
+        final Tokenizer tokenizer = new Tokenizer("24");
+        assertEquals(Optional.of(new IntegerToken(24)),
+                     tokenizer.tryReadInteger());
+    }
 }

@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: tokenizer.TokenizerTest
 -------------------------------------------------------------------------------
-Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.05 s - in tokenizer.TokenizerTest
+Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.546 s - in tokenizer.TokenizerTest

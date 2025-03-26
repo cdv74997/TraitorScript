@@ -144,4 +144,116 @@ public class TokenizerTest{
         assertEquals(Optional.of(new IntegerToken(24)),
                      tokenizer.tryReadInteger());
     }
+
+    @Test
+    public void testPrintlnToken(){
+        final Tokenizer tokenizer = new Tokenizer("println");
+        assertEquals(Optional.of(new PrintlnToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testVoidToken(){
+        final Tokenizer tokenizer = new Tokenizer("void");
+        assertEquals(Optional.of(new VoidToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testSelfToken(){
+        final Tokenizer tokenizer = new Tokenizer("self");
+        assertEquals(Optional.of(new SelfToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testStructToken(){
+        final Tokenizer tokenizer = new Tokenizer("struct");
+        assertEquals(Optional.of(new StructToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testMethodToken(){
+        final Tokenizer tokenizer = new Tokenizer("method");
+        assertEquals(Optional.of(new MethodToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testTraitToken(){
+        final Tokenizer tokenizer = new Tokenizer("trait");
+        assertEquals(Optional.of(new TraitToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testImplToken(){
+        final Tokenizer tokenizer = new Tokenizer("impl");
+        assertEquals(Optional.of(new ImplToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testForToken(){
+        final Tokenizer tokenizer = new Tokenizer("for");
+        assertEquals(Optional.of(new ForToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testFuncToken(){
+        final Tokenizer tokenizer = new Tokenizer("func");
+        assertEquals(Optional.of(new FuncToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testLetToken(){
+        final Tokenizer tokenizer = new Tokenizer("let");
+        assertEquals(Optional.of(new LetToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testIfToken(){
+        final Tokenizer tokenizer = new Tokenizer("if");
+        assertEquals(Optional.of(new IfToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testElseToken(){
+        final Tokenizer tokenizer = new Tokenizer("else");
+        assertEquals(Optional.of(new ElseToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testWhileToken(){
+        final Tokenizer tokenizer = new Tokenizer("while");
+        assertEquals(Optional.of(new WhileToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testBreakToken(){
+        final Tokenizer tokenizer = new Tokenizer("break");
+        assertEquals(Optional.of(new BreakToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testReturnToken(){
+        final Tokenizer tokenizer = new Tokenizer("return");
+        assertEquals(Optional.of(new ReturnToken()),
+                     tokenizer.tryReadReservedWord());
+    }
+
+    @Test
+    public void testNewToken(){
+        final Tokenizer tokenizer = new Tokenizer("new");
+        assertEquals(Optional.of(new NewToken()),
+                     tokenizer.tryReadReservedWord());
+    }
 }

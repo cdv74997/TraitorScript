@@ -3,6 +3,7 @@ tokenizer/TrueToken.class
 tokenizer/ForToken.class
 tokenizer/IfToken.class
 tokenizer/ElseToken.class
+tokenizer/TokenizerException.class
 tokenizer/FuncToken.class
 tokenizer/Tokenizer.class
 tokenizer/SelfToken.class
@@ -24,7 +25,6 @@ tokenizer/SemicolonToken.class
 tokenizer/BreakToken.class
 tokenizer/WhileToken.class
 tokenizer/DEqualsToken.class
-tokenization_example/TokenizerException.class
 tokenizer/LCurlyToken.class
 tokenizer/StructToken.class
 tokenizer/LessThanToken.class

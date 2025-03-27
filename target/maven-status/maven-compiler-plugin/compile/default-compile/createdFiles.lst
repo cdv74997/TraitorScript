@@ -1,5 +1,4 @@
 tokenizer/VoidToken.class
-tokenizer/TrueToken.class
 tokenizer/ForToken.class
 tokenizer/IfToken.class
 tokenizer/ElseToken.class
@@ -14,7 +13,7 @@ tokenizer/CommaToken.class
 tokenizer/NEqualsToken.class
 tokenizer/Token.class
 tokenizer/LetToken.class
-tokenizer/IntegerToken.class
+tokenizer/IdentifierToken.class
 tokenizer/MinusToken.class
 tokenizer/StarToken.class
 tokenizer/PrintlnToken.class
@@ -22,16 +21,18 @@ tokenizer/EqualsToken.class
 tokenizer/LParenToken.class
 tokenizer/RCurlyToken.class
 tokenizer/SemicolonToken.class
+tokenizer/BooleanLiteralToken.class
 tokenizer/BreakToken.class
 tokenizer/WhileToken.class
 tokenizer/DEqualsToken.class
+tokenizer/IntegerLiteralToken.class
 tokenizer/LCurlyToken.class
 tokenizer/StructToken.class
 tokenizer/LessThanToken.class
 tokenizer/RParenToken.class
 tokenizer/BooleanToken.class
 tokenizer/SlashToken.class
-tokenizer/FalseToken.class
+tokenizer/IntToken.class
 tokenizer/RArrowToken.class
 tokenizer/NewToken.class
 tokenizer/ReturnToken.class

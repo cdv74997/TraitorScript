@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="tokenizer.TokenizerTest" time="0.05" tests="38" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="tokenizer.TokenizerTest" time="0.053" tests="47" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="19"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -12,7 +12,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk-19.jdk/Contents/Home/lib"/>
-    <property name="sun.java.command" value="/Users/elena/Downloads/Comp430/TraitorScript/target/surefire/surefirebooter6497437526146314913.jar /Users/elena/Downloads/Comp430/TraitorScript/target/surefire 2025-03-26T13-12-20_938-jvmRun1 surefire6905633738985032239tmp surefire_014908102550822011188tmp"/>
+    <property name="sun.java.command" value="/Users/elena/Downloads/Comp430/TraitorScript/target/surefire/surefirebooter2240964819859745757.jar /Users/elena/Downloads/Comp430/TraitorScript/target/surefire 2025-03-26T17-14-27_320-jvmRun1 surefire15174204138257597374tmp surefire_05227637420008178139tmp"/>
     <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="/Users/elena/Downloads/Comp430/TraitorScript/target/test-classes:/Users/elena/Downloads/Comp430/TraitorScript/target/classes:/Users/elena/.m2/repository/org/junit/jupiter/junit-jupiter-api/5.7.0/junit-jupiter-api-5.7.0.jar:/Users/elena/.m2/repository/org/apiguardian/apiguardian-api/1.1.0/apiguardian-api-1.1.0.jar:/Users/elena/.m2/repository/org/opentest4j/opentest4j/1.2.0/opentest4j-1.2.0.jar:/Users/elena/.m2/repository/org/junit/platform/junit-platform-commons/1.7.0/junit-platform-commons-1.7.0.jar:/Users/elena/.m2/repository/org/junit/jupiter/junit-jupiter-engine/5.7.0/junit-jupiter-engine-5.7.0.jar:/Users/elena/.m2/repository/org/junit/platform/junit-platform-engine/1.7.0/junit-platform-engine-1.7.0.jar:"/>
@@ -29,7 +29,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="apple.awt.application.name" value="ForkedBooter"/>
-    <property name="surefire.real.class.path" value="/Users/elena/Downloads/Comp430/TraitorScript/target/surefire/surefirebooter6497437526146314913.jar"/>
+    <property name="surefire.real.class.path" value="/Users/elena/Downloads/Comp430/TraitorScript/target/surefire/surefirebooter2240964819859745757.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.runtime.version" value="19.0.2+7-44"/>
@@ -57,29 +57,35 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="63.0"/>
   </properties>
-  <testcase name="testReadRParenToken" classname="tokenizer.TokenizerTest" time="0.017"/>
-  <testcase name="testMethodToken" classname="tokenizer.TokenizerTest" time="0.002"/>
-  <testcase name="testReadDEqualsToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testBooleanLiteralFalseToken" classname="tokenizer.TokenizerTest" time="0.02"/>
+  <testcase name="testReadEmptyStringToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testReadRParenToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testMultiTokenize" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testMethodToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testReadDEqualsToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testReadPlusToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testReadEqualsToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testLetToken" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testDoubleDigitIntegerToken" classname="tokenizer.TokenizerTest" time="0.002"/>
+  <testcase name="testReadEqualsToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testLetToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testEmpty" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testSelfToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testReadLCurlyToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testReadEmptyIntegerToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testSelfToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testReadLCurlyToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testReadLessThanToken" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testVoidToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testElseToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testReadEmptySymbolToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testVoidToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testElseToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testReadNEqualsToken" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testPrintlnToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testPrintlnToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testSingleDigitIntegerLiteralToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testBooleanToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testSingleWhitespaceAndA" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testSingleDigitIntegerToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testReadSlashToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testReadLParenToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testImplToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testReadCommaToken" classname="tokenizer.TokenizerTest" time="0.002"/>
+  <testcase name="testReadCommaToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testFuncToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testBreakToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testBreakToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testBooleanLiteralTrueToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testStructToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testReadColonToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testReadDotToken" classname="tokenizer.TokenizerTest" time="0"/>
@@ -87,12 +93,15 @@
   <testcase name="testWhileToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testReadRCurlyToken" classname="tokenizer.TokenizerTest" time="0.001"/>
   <testcase name="testForToken" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testIfToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testIntToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testIfToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testReadMinusToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testDoubleDigitIntegerLiteralToken" classname="tokenizer.TokenizerTest" time="0"/>
   <testcase name="testTraitToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testSingleWhitespace" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testReadSemicolonToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testNewToken" classname="tokenizer.TokenizerTest" time="0"/>
-  <testcase name="testReadStarToken" classname="tokenizer.TokenizerTest" time="0.001"/>
-  <testcase name="testReturnToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testIdentifierToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testSingleWhitespace" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testReadSemicolonToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testNewToken" classname="tokenizer.TokenizerTest" time="0.001"/>
+  <testcase name="testReadStarToken" classname="tokenizer.TokenizerTest" time="0"/>
+  <testcase name="testReturnToken" classname="tokenizer.TokenizerTest" time="0.001"/>
 </testsuite>

@@ -92,11 +92,11 @@ public class Tokenizer{
         if (digits.length() == 0) {
             return Optional.empty();
         } else {
-            return Optional.of(new IntegerToken(Integer.parseInt(digits)));
+            return Optional.of(new IntegerLiteralToken(Integer.parseInt(digits)));
         }
     }// tryReadInteger
 
-    public Optional<Token> tryReadReservedWord(){
+    public Optional<Token> tryReadReservedWordOrIdentifier(){
         String chars = "";
 
         if (position < input.length() &&
@@ -110,9 +110,9 @@ public class Tokenizer{
             }
             if(chars.equals("println")) {
                 return Optional.of(new PrintlnToken());
-            } else if(chars.equals("void")){
+            } else if(chars.equals("Void")){
                 return Optional.of(new VoidToken());
-            } else if(chars.equals("self")){
+            } else if(chars.equals("Self")){
                 return Optional.of(new SelfToken());
             } else if(chars.equals("struct")){
                 return Optional.of(new StructToken());
@@ -140,12 +140,51 @@ public class Tokenizer{
                 return Optional.of(new ReturnToken());
             } else if(chars.equals("new")){
                 return Optional.of(new NewToken());
+            } else if(chars.equals("Int")){
+                return Optional.of(new IntToken());
+            } else if(chars.equals("true")){
+                return Optional.of(new BooleanLiteralToken(true));
+            } else if(chars.equals("false")){
+                return Optional.of(new BooleanLiteralToken(false));
+            } else if(chars.equals("Boolean")){
+                return Optional.of(new BooleanToken());
             } else{
-                return Optional.empty();
+                return Optional.of(new IdentifierToken(chars));
             }
         } else{
             return Optional.empty();
         }
-    }// tryReadReservedWord
+    }// tryReadReservedWordOrIdentifier
+
+    public Token readToken() throws TokenizerException{
+        Optional<Token> token;
+    
+    token = tryReadInteger();
+    if (token.isPresent()) {
+        return token.get();
+    }
+
+    token = tryReadSymbol();
+    if (token.isPresent()) {
+        return token.get();
+    }
+
+    token = tryReadReservedWordOrIdentifier();
+    if (token.isPresent()) {
+        return token.get();
+    }
+
+    throw new TokenizerException("Invalid char: " + input.charAt(position));
+    } // readToken
+
+    public ArrayList<Token> tokenize() throws TokenizerException{
+        final ArrayList<Token> tokens = new ArrayList<Token>();
+        skipWhitespace();
+        while (position < input.length()) {
+            tokens.add(readToken());
+            skipWhitespace();
+        }
+        return tokens;
+    } // tokenize
     
 }// Tokenizer

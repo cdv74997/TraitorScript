@@ -72,11 +72,11 @@ public class Tokenizer{
 <span class="fc bfc" id="L72" title="All 2 branches covered.">        } else if(input.startsWith(&quot;!=&quot;, position)){</span>
 <span class="fc" id="L73">            position++;</span>
 <span class="fc" id="L74">            return Optional.of(new NEqualsToken());</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">        } else if(input.startsWith(&quot;=&quot;, position)){</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        } else if(input.startsWith(&quot;=&quot;, position)){</span>
 <span class="fc" id="L76">            position++;</span>
 <span class="fc" id="L77">            return Optional.of(new EqualsToken());</span>
         } else{
-<span class="nc" id="L79">            return Optional.empty();</span>
+<span class="fc" id="L79">            return Optional.empty();</span>
         }
     } // tryReadSymbol
 
@@ -84,35 +84,35 @@ public class Tokenizer{
 <span class="fc" id="L84">        String digits = &quot;&quot;;</span>
 
 <span class="fc bfc" id="L86" title="All 2 branches covered.">        while (position &lt; input.length() &amp;&amp;</span>
-<span class="pc bpc" id="L87" title="1 of 2 branches missed.">               Character.isDigit(input.charAt(position))) {</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">               Character.isDigit(input.charAt(position))) {</span>
 <span class="fc" id="L88">            digits += input.charAt(position);</span>
 <span class="fc" id="L89">            position++;</span>
         }
 
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (digits.length() == 0) {</span>
-<span class="nc" id="L93">            return Optional.empty();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        if (digits.length() == 0) {</span>
+<span class="fc" id="L93">            return Optional.empty();</span>
         } else {
 <span class="fc" id="L95">            return Optional.of(new IntegerLiteralToken(Integer.parseInt(digits)));</span>
         }
     }// tryReadInteger
 
-    public Optional&lt;Token&gt; tryReadReservedWord(){
+    public Optional&lt;Token&gt; tryReadReservedWordOrIdentifier(){
 <span class="fc" id="L100">        String chars = &quot;&quot;;</span>
 
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (position &lt; input.length() &amp;&amp;</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">        if (position &lt; input.length() &amp;&amp;</span>
 <span class="pc bpc" id="L103" title="1 of 2 branches missed.">            Character.isLetter(input.charAt(position))) {</span>
 <span class="fc" id="L104">            chars = chars + input.charAt(position);</span>
 <span class="fc" id="L105">            position++;</span>
 <span class="fc bfc" id="L106" title="All 2 branches covered.">            while(position &lt; input.length() &amp;&amp;</span>
-<span class="pc bpc" id="L107" title="1 of 2 branches missed.">                   Character.isLetterOrDigit(input.charAt(position))) {</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">                   Character.isLetterOrDigit(input.charAt(position))) {</span>
 <span class="fc" id="L108">                chars += input.charAt(position);</span>
 <span class="fc" id="L109">                position++;</span>
             }
 <span class="fc bfc" id="L111" title="All 2 branches covered.">            if(chars.equals(&quot;println&quot;)) {</span>
 <span class="fc" id="L112">                return Optional.of(new PrintlnToken());</span>
-<span class="fc bfc" id="L113" title="All 2 branches covered.">            } else if(chars.equals(&quot;void&quot;)){</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            } else if(chars.equals(&quot;Void&quot;)){</span>
 <span class="fc" id="L114">                return Optional.of(new VoidToken());</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">            } else if(chars.equals(&quot;self&quot;)){</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            } else if(chars.equals(&quot;Self&quot;)){</span>
 <span class="fc" id="L116">                return Optional.of(new SelfToken());</span>
 <span class="fc bfc" id="L117" title="All 2 branches covered.">            } else if(chars.equals(&quot;struct&quot;)){</span>
 <span class="fc" id="L118">                return Optional.of(new StructToken());</span>
@@ -138,21 +138,54 @@ public class Tokenizer{
 <span class="fc" id="L138">                return Optional.of(new BreakToken());</span>
 <span class="fc bfc" id="L139" title="All 2 branches covered.">            } else if(chars.equals(&quot;return&quot;)){</span>
 <span class="fc" id="L140">                return Optional.of(new ReturnToken());</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">            } else if(chars.equals(&quot;new&quot;)){</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">            } else if(chars.equals(&quot;new&quot;)){</span>
 <span class="fc" id="L142">                return Optional.of(new NewToken());</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">            } else if(chars.equals(&quot;int&quot;)){</span>
-<span class="nc" id="L144">                return Optional.of(new IntToken());</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">            } else if(chars.equals(&quot;true&quot;)){</span>
-<span class="nc" id="L146">                return Optional.of(new BooleanLiteralToken(true));</span>
-<span class="nc bnc" id="L147" title="All 2 branches missed.">            } else if(chars.equals(&quot;false&quot;)){</span>
-<span class="nc" id="L148">                return Optional.of(new BooleanLiteralToken(false));</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">            } else if(chars.equals(&quot;Int&quot;)){</span>
+<span class="fc" id="L144">                return Optional.of(new IntToken());</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">            } else if(chars.equals(&quot;true&quot;)){</span>
+<span class="fc" id="L146">                return Optional.of(new BooleanLiteralToken(true));</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">            } else if(chars.equals(&quot;false&quot;)){</span>
+<span class="fc" id="L148">                return Optional.of(new BooleanLiteralToken(false));</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">            } else if(chars.equals(&quot;Boolean&quot;)){</span>
+<span class="fc" id="L150">                return Optional.of(new BooleanToken());</span>
             } else{
-<span class="nc" id="L150">                return Optional.of(new IdentifierToken(chars));</span>
+<span class="fc" id="L152">                return Optional.of(new IdentifierToken(chars));</span>
             }
         } else{
-<span class="nc" id="L153">            return Optional.empty();</span>
+<span class="fc" id="L155">            return Optional.empty();</span>
         }
-    }// tryReadReservedWord
+    }// tryReadReservedWordOrIdentifier
+
+    public Token readToken() throws TokenizerException{
+        Optional&lt;Token&gt; token;
+    
+<span class="fc" id="L162">    token = tryReadInteger();</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">    if (token.isPresent()) {</span>
+<span class="nc" id="L164">        return token.get();</span>
+    }
+
+<span class="fc" id="L167">    token = tryReadSymbol();</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">    if (token.isPresent()) {</span>
+<span class="nc" id="L169">        return token.get();</span>
+    }
+
+<span class="fc" id="L172">    token = tryReadReservedWordOrIdentifier();</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">    if (token.isPresent()) {</span>
+<span class="fc" id="L174">        return token.get();</span>
+    }
+
+<span class="nc" id="L177">    throw new TokenizerException(&quot;Invalid char: &quot; + input.charAt(position));</span>
+    } // readToken
+
+    public ArrayList&lt;Token&gt; tokenize() throws TokenizerException{
+<span class="fc" id="L181">        final ArrayList&lt;Token&gt; tokens = new ArrayList&lt;Token&gt;();</span>
+<span class="fc" id="L182">        skipWhitespace();</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">        while (position &lt; input.length()) {</span>
+<span class="fc" id="L184">            tokens.add(readToken());</span>
+<span class="fc" id="L185">            skipWhitespace();</span>
+        }
+<span class="fc" id="L187">        return tokens;</span>
+    } // tokenize
     
 }// Tokenizer
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

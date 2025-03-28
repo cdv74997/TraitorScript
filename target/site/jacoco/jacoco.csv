@@ -6,7 +6,7 @@ TraitorScript,tokenizer,LParenToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,NewToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,StarToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,LessThanToken,0,3,0,0,0,1,0,1,0,1
-TraitorScript,tokenizer,IntToken,3,0,0,0,1,0,1,0,1,0
+TraitorScript,tokenizer,IntToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,LetToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,ElseToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,MinusToken,0,3,0,0,0,1,0,1,0,1
@@ -18,8 +18,8 @@ TraitorScript,tokenizer,LCurlyToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,BreakToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,RParenToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,TraitToken,0,3,0,0,0,1,0,1,0,1
-TraitorScript,tokenizer,IdentifierToken,9,0,0,0,1,0,2,0,2,0
-TraitorScript,tokenizer,BooleanToken,3,0,0,0,1,0,1,0,1,0
+TraitorScript,tokenizer,IdentifierToken,3,6,0,0,0,1,1,1,1,1
+TraitorScript,tokenizer,BooleanToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,RArrowToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,DEqualsToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,ReturnToken,0,3,0,0,0,1,0,1,0,1
@@ -33,9 +33,9 @@ TraitorScript,tokenizer,ColonToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,DotToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,TokenizerException,4,0,0,0,2,0,1,0,1,0
 TraitorScript,tokenizer,StructToken,0,3,0,0,0,1,0,1,0,1
-TraitorScript,tokenizer,BooleanLiteralToken,9,0,0,0,1,0,2,0,2,0
+TraitorScript,tokenizer,BooleanLiteralToken,3,6,0,0,0,1,1,1,1,1
 TraitorScript,tokenizer,ForToken,0,3,0,0,0,1,0,1,0,1
-TraitorScript,tokenizer,Tokenizer,41,580,13,77,10,108,10,41,0,6
+TraitorScript,tokenizer,Tokenizer,18,674,4,96,3,133,4,54,0,8
 TraitorScript,tokenizer,ImplToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,PrintlnToken,0,3,0,0,0,1,0,1,0,1
 TraitorScript,tokenizer,CommaToken,0,3,0,0,0,1,0,1,0,1

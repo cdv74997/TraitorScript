@@ -62,8 +62,11 @@ public class ASTTests {
 
     @Test
     void testProgram() {
-        Program prog = new Program(List.of(), List.of());
-        assertTrue(prog.items().isEmpty());
-        assertTrue(prog.entryPoint().isEmpty());
+    // Creating a Program with an empty list of statements
+    Program prog = new Program(List.of());
+
+    // Asserting that the statements list is empty
+    assertTrue(prog.statements().isEmpty());
     }
+
 }

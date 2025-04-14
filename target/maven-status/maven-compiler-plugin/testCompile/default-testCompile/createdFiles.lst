@@ -1,6 +1,5 @@
-parser\AbsMethodDefTest.class
-parser\BinaryExprTest.class
 parser\StructDefTest.class
-parser\ASTTests.class
 parser\ParamTest.class
+parser\AbsMethodDefTest.class
+parser\ASTTests.class
 tokenizer\TokenizerTest.class

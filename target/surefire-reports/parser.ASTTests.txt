@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: parser.ASTTests
 -------------------------------------------------------------------------------
-Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.112 s - in parser.ASTTests
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.103 s - in parser.ASTTests

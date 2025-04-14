@@ -2,4 +2,4 @@ package parser;
 
 import java.util.List;
 
-public record CallExpr(Expr function, List<List<Expr>> argumentGroups) implements Expr {}
+public record CallExpr(Exp function, List<List<Exp>> argumentGroups) implements Exp {}

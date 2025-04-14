@@ -1,4 +1,3 @@
-parser\ParenExpr.class
 parser\BoolLiteral.class
 tokenizer\Tokenizer.class
 parser\SubOp.class
@@ -15,8 +14,6 @@ parser\NeqOp.class
 parser\Type.class
 parser\VoidType.class
 tokenizer\BooleanToken.class
-parser\NewExpr.class
-parser\SelfExpr.class
 tokenizer\CommaToken.class
 tokenizer\RCurlyToken.class
 parser\CallExpr.class
@@ -41,10 +38,8 @@ parser\TraitDef.class
 parser\IntLiteral.class
 parser\ReturnStmt.class
 tokenizer\MethodToken.class
-parser\ExprStmt.class
 tokenizer\FuncToken.class
 parser\OrOp.class
-parser\Expr.class
 tokenizer\BreakToken.class
 tokenizer\SlashToken.class
 parser\MulOp.class
@@ -56,7 +51,6 @@ parser\Param.class
 parser\DivOp.class
 parser\IfStmt.class
 tokenizer\PlusToken.class
-parser\DotExpr.class
 parser\AndOp.class
 tokenizer\DEqualsToken.class
 parser\ConcMethodDef.class
@@ -67,7 +61,6 @@ parser\FuncDef.class
 tokenizer\ElseToken.class
 tokenizer\SelfToken.class
 parser\StructDef.class
-parser\BinaryExpr.class
 tokenizer\Token.class
 tokenizer\DotToken.class
 parser\WhileStmt.class
@@ -82,6 +75,5 @@ tokenizer\SemicolonToken.class
 parser\ImplDef.class
 tokenizer\TraitToken.class
 parser\Op.class
-parser\VarExpr.class
 tokenizer\IfToken.class
 parser\AbsMethodDef.class

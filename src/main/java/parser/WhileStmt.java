@@ -1,3 +1,3 @@
 package parser;
 
-public record WhileStmt(Expr condition, Stmt body) implements Stmt{}
+public record WhileStmt(Exp condition, Stmt body) implements Stmt{}

@@ -1,3 +1,3 @@
 package parser;
 
-public record AssignStmt(String name, Expr value) implements Stmt {}
+public record AssignStmt(String name, Exp value) implements Stmt {}

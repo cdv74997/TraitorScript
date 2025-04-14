@@ -1,3 +1,3 @@
 package parser;
 
-public record IfStmt(Expr condition, Stmt thenBranch, Stmt elseBranch) implements Stmt {}
+public record IfStmt(Exp condition, Stmt thenBranch, Stmt elseBranch) implements Stmt {}

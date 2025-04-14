@@ -1,3 +1,3 @@
 package parser;
 
-public record PrintlnStmt(Expr expression) implements Stmt {}
+public record PrintlnStmt(Exp expression) implements Stmt {}

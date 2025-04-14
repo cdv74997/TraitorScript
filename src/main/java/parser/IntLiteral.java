@@ -1,3 +1,3 @@
 package parser;
 
-public record IntLiteral(int value) implements Expr {}
+public record IntLiteral(int value) implements Exp {}

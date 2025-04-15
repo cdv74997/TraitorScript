@@ -1,5 +1,12 @@
+parser\ParserTest.class
 parser\StructDefTest.class
+parser\BinaryExpTest.class
 parser\ParamTest.class
 parser\AbsMethodDefTest.class
+parser\TraitDefTest.class
 parser\ASTTests.class
+parser\FunctionTypeTest.class
+parser\AddExpTest.class
+parser\ConcMethodDefTest.class
+parser\ImplDefTest.class
 tokenizer\TokenizerTest.class

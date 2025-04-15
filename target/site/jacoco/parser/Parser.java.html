@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Parser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TraitorScript</a> &gt; <a href="index.source.html" class="el_package">parser</a> &gt; <span class="el_source">Parser.java</span></div><h1>Parser.java</h1><pre class="source lang-java linenums">package parser;
+
+import tokenizer.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class Parser {
+    public final Token[] tokens;
+
+<span class="fc" id="L12">    public Parser(final Token[] tokens) {</span>
+<span class="fc" id="L13">        this.tokens = tokens;</span>
+<span class="fc" id="L14">    }</span>
+
+    public Token readToken(final int pos) throws ParseException {
+<span class="pc bpc" id="L17" title="1 of 4 branches missed.">        if (pos &lt; 0 || pos &gt;= tokens.length) {</span>
+<span class="fc" id="L18">            throw new ParseException(&quot;Ran out of tokens&quot;);</span>
+        } else {
+<span class="fc" id="L20">            return tokens[pos];</span>
+        }
+    }
+
+    public Token getToken(final int pos) throws ParseException {
+<span class="fc" id="L25">        return readToken(pos);</span>
+    }
+
+    public void assertTokenIs(final int pos, final Token expected) throws ParseException {
+<span class="fc" id="L29">        final Token received = getToken(pos);</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (!expected.equals(received)) {</span>
+<span class="fc" id="L31">            throw new ParseException(&quot;Expected: &quot; + expected + &quot;, got: &quot; + received);</span>
+        }
+<span class="fc" id="L33">    }</span>
+
+    // exp ::= addExp
+    public ParseResult&lt;Exp&gt; exp(final int startPos) throws ParseException {
+<span class="fc" id="L37">        return addExp(startPos);</span>
+    }
+
+    // addExp ::= multExp ((+ | -) multExp)*
+    public ParseResult&lt;Exp&gt; addExp(final int startPos) throws ParseException {
+<span class="fc" id="L42">        ParseResult&lt;Exp&gt; m = multExp(startPos);</span>
+<span class="fc" id="L43">        Exp result = m.result();</span>
+<span class="fc" id="L44">        int pos = m.nextPos();</span>
+
+        while (true) {
+            try {
+<span class="fc" id="L48">                Token t = getToken(pos);</span>
+                Op op;
+
+<span class="fc bfc" id="L51" title="All 2 branches covered.">                if (t instanceof PlusToken) {</span>
+<span class="fc" id="L52">                    op = new AddOp();</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">                } else if (t instanceof MinusToken) {</span>
+<span class="fc" id="L54">                    op = new SubOp();</span>
+                } else {
+<span class="fc" id="L56">                    break;</span>
+                }
+
+<span class="fc" id="L59">                ParseResult&lt;Exp&gt; m2 = multExp(pos + 1);</span>
+<span class="fc" id="L60">                result = new BinOpExp(result, op, m2.result());</span>
+<span class="fc" id="L61">                pos = m2.nextPos();</span>
+<span class="fc" id="L62">            } catch (ParseException e) {</span>
+<span class="fc" id="L63">                break;</span>
+<span class="fc" id="L64">            }</span>
+        }
+
+<span class="fc" id="L67">        return new ParseResult&lt;&gt;(result, pos);</span>
+    }
+
+    // multExp ::= primaryExp ((* | /) primaryExp)*
+    public ParseResult&lt;Exp&gt; multExp(final int startPos) throws ParseException {
+<span class="fc" id="L72">        ParseResult&lt;Exp&gt; m = primaryExp(startPos);</span>
+<span class="fc" id="L73">        Exp result = m.result();</span>
+<span class="fc" id="L74">        int pos = m.nextPos();</span>
+
+        while (true) {
+            try {
+<span class="fc" id="L78">                Token t = getToken(pos);</span>
+                Op op;
+
+<span class="fc bfc" id="L81" title="All 2 branches covered.">                if (t instanceof StarToken) {</span>
+<span class="fc" id="L82">                    op = new MulOp();</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">                } else if (t instanceof DivToken) {</span>
+<span class="nc" id="L84">                    op = new DivOp();</span>
+                } else {
+<span class="fc" id="L86">                    break;</span>
+                }
+
+<span class="fc" id="L89">                ParseResult&lt;Exp&gt; m2 = primaryExp(pos + 1);</span>
+<span class="fc" id="L90">                result = new BinOpExp(result, op, m2.result());</span>
+<span class="fc" id="L91">                pos = m2.nextPos();</span>
+<span class="fc" id="L92">            } catch (ParseException e) {</span>
+<span class="fc" id="L93">                break;</span>
+<span class="fc" id="L94">            }</span>
+        }
+
+<span class="fc" id="L97">        return new ParseResult&lt;&gt;(result, pos);</span>
+    }
+
+    // primaryExp ::= IDENTIFIER | INTEGER | `(` exp `)`
+    public ParseResult&lt;Exp&gt; primaryExp(final int startPos) throws ParseException {
+<span class="fc" id="L102">        Token t = getToken(startPos);</span>
+
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (t instanceof IdentifierToken id) {</span>
+<span class="nc" id="L105">            return new ParseResult&lt;&gt;(new VarExp(id.name()), startPos + 1);</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">        } else if (t instanceof IntegerLiteralToken i) {</span>
+<span class="fc" id="L107">            return new ParseResult&lt;&gt;(new IntLiteral(i.value()), startPos + 1);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        } else if (t instanceof LParenToken) {</span>
+<span class="fc" id="L109">            ParseResult&lt;Exp&gt; inner = exp(startPos + 1);</span>
+<span class="fc" id="L110">            assertTokenIs(inner.nextPos(), new RParenToken());</span>
+<span class="fc" id="L111">            return new ParseResult&lt;&gt;(new ParenExp(inner.result()), inner.nextPos() + 1);</span>
+        } else {
+<span class="fc" id="L113">            throw new ParseException(&quot;Expected primary expression at &quot; + startPos);</span>
+        }
+    }
+
+    // stmt ::= IDENTIFIER = exp ; | print exp ; | return [exp] ;
+    public ParseResult&lt;Stmt&gt; stmt(final int startPos) throws ParseException {
+<span class="fc" id="L119">        Token token = getToken(startPos);</span>
+
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (token instanceof IdentifierToken id) {</span>
+<span class="fc" id="L122">            assertTokenIs(startPos + 1, new EqualsToken());</span>
+<span class="fc" id="L123">            ParseResult&lt;Exp&gt; expr = exp(startPos + 2);</span>
+<span class="fc" id="L124">            assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
+<span class="fc" id="L125">            return new ParseResult&lt;&gt;(new AssignStmt(id.name(), expr.result()), expr.nextPos() + 1);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">        } else if (token instanceof PrintToken) {</span>
+<span class="fc" id="L127">            ParseResult&lt;Exp&gt; expr = exp(startPos + 1);</span>
+<span class="fc" id="L128">            assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
+<span class="fc" id="L129">            return new ParseResult&lt;&gt;(new PrintlnStmt(expr.result()), expr.nextPos() + 1);</span>
+<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        } else if (token instanceof ReturnToken) {</span>
+            try {
+<span class="fc" id="L132">                ParseResult&lt;Exp&gt; expr = exp(startPos + 1);</span>
+<span class="fc" id="L133">                assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
+<span class="fc" id="L134">                return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.of(expr.result())), expr.nextPos() + 1);</span>
+<span class="fc" id="L135">            } catch (ParseException e) {</span>
+<span class="fc" id="L136">                assertTokenIs(startPos + 1, new SemicolonToken());</span>
+<span class="fc" id="L137">                return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.empty()), startPos + 2);</span>
+            }
+        } else {
+<span class="nc" id="L140">            throw new ParseException(&quot;Expected statement at &quot; + startPos);</span>
+        }
+    }
+
+    // program ::= stmt*
+    public ParseResult&lt;Program&gt; program(final int startPos) {
+<span class="fc" id="L146">        List&lt;Stmt&gt; stmts = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L147">        int pos = startPos;</span>
+
+<span class="fc bfc" id="L149" title="All 2 branches covered.">        while (pos &lt; tokens.length) {</span>
+            try {
+<span class="fc" id="L151">                ParseResult&lt;Stmt&gt; res = stmt(pos);</span>
+<span class="fc" id="L152">                stmts.add(res.result());</span>
+<span class="fc" id="L153">                pos = res.nextPos();</span>
+<span class="nc" id="L154">            } catch (ParseException e) {</span>
+<span class="nc" id="L155">                break;</span>
+<span class="fc" id="L156">            }</span>
+        }
+
+<span class="fc" id="L159">        return new ParseResult&lt;Program&gt;(new Program(stmts), pos);</span>
+    }
+
+    // Top-level entry point
+    public Program parseWholeProgram() throws ParseException {
+<span class="fc" id="L164">        ParseResult&lt;Program&gt; result = program(0);</span>
+
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if (result.nextPos() == tokens.length) {</span>
+<span class="fc" id="L167">            return result.result();</span>
+        } else {
+<span class="nc" id="L169">            throw new ParseException(&quot;Extra tokens after program at position &quot; + result.nextPos());</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

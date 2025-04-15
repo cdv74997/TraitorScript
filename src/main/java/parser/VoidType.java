@@ -1,3 +1,8 @@
 package parser;
 
-public record VoidType() implements Type {}
+public record VoidType() implements Type {
+    @Override
+    public String toString() {
+        return "Void";
+    }
+}

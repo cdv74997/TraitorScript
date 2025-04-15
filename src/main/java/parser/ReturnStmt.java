@@ -2,7 +2,11 @@ package parser;
 
 import java.util.Optional;
 
-public record ReturnStmt(Optional<Exp> expression) implements Stmt {}
+public record ReturnStmt(Optional<Exp> value) implements Stmt {
+    public Optional<Exp> value() {
+        return value;
+    }
+}
 
 
 

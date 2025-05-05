@@ -32,6 +32,274 @@ public class Parser {
         }
     }
 
+
+    // Parses: comma_type ::= [type (`,` type)*]
+    public ParseResult<List<Type>> commaType(final int startPos) throws ParseException {
+        List<Type> types = new ArrayList<>();
+        int pos = startPos;
+
+        try {
+            ParseResult<Type> first = type(pos);
+            types.add(first.result());
+            pos = first.nextPos();
+
+            while (true) {
+                Token t = getToken(pos);
+                if (t instanceof CommaToken) {
+                    ParseResult<Type> next = type(pos + 1);
+                    types.add(next.result());
+                    pos = next.nextPos();
+                } else {
+                    break;
+                }
+            }
+        } catch (ParseException e) {
+            // empty list is valid
+        }
+
+        return new ParseResult<>(types, pos);
+    }
+
+    // type ::=
+    // `Int` | `Void` | `Boolean` | Built-in types
+    // `Self` | Refers to our own type in a trait
+    // structname | Structs are a valid kind of type
+    // `(` type `)` | Parenthesized type
+    // `(` comma_type `)` `=>` type Higher-order function
+
+    public ParseResult<Type> type(int startPos) throws ParseException {
+        Token t = getToken(startPos);
+    
+        if (t instanceof IntToken) {
+            return new ParseResult<>(new IntType(), startPos + 1);
+        } else if (t instanceof VoidToken) {
+            return new ParseResult<>(new VoidType(), startPos + 1);
+        } else if (t instanceof BooleanToken) {
+            return new ParseResult<>(new BooleanType(), startPos + 1);
+        } else if (t instanceof SelfToken) {
+            return new ParseResult<>(new SelfType(), startPos + 1);
+        } else if (t instanceof IdentifierToken id) {
+            return new ParseResult<>(new StructType(id.name()), startPos + 1);
+        } else if (t instanceof LParenToken) {
+            // Could be parenthesized type or function type
+            ParseResult<List<Type>> paramTypes = commaType(startPos + 1);
+            int nextPos = paramTypes.nextPos();
+            assertTokenIs(nextPos, new RParenToken());
+    
+            // Check for function arrow
+            Token afterParen = getToken(nextPos + 1);
+            if (afterParen instanceof ArrowToken) {
+                // Function type: (comma_type) => type
+                ParseResult<Type> returnType = type(nextPos + 2);
+                return new ParseResult<>(
+                    new FunctionType(paramTypes.result(), returnType.result()),
+                    returnType.nextPos()
+                );
+            } else {
+                // Just parenthesized type
+                List<Type> types = paramTypes.result();
+                if (types.size() != 1) {
+                    throw new ParseException("Expected exactly one type in parentheses at " + startPos);
+                }
+                return new ParseResult<>(types.get(0), nextPos + 1);
+            }
+        }
+    
+        throw new ParseException("Expected type at position " + startPos + ", got: " + t);
+    }
+    
+    
+    //param ::= var `:` type
+    public ParseResult<Param> param(int startPos) throws ParseException {
+        Token t = getToken(startPos);
+    
+        if (!(t instanceof IdentifierToken id)) {
+            throw new ParseException("Expected variable name at position " + startPos + ", got: " + t);
+        }
+    
+        Token colon = getToken(startPos + 1);
+        if (!(colon instanceof ColonToken)) {
+            throw new ParseException("Expected ':' after variable at position " + (startPos + 1) + ", got: " + colon);
+        }
+    
+        ParseResult<Type> parsedType = type(startPos + 2);
+        return new ParseResult<>(new Param(id.name(), parsedType.result()), parsedType.nextPos());
+    }
+
+    //comma_param ::= [param (`,` param)*]
+    public ParseResult<List<Param>> commaParam(int startPos) throws ParseException {
+        List<Param> params = new ArrayList<>();
+        int pos = startPos;
+    
+        try {
+            ParseResult<Param> first = param(pos);
+            params.add(first.result());
+            pos = first.nextPos();
+    
+            while (true) {
+                Token t = getToken(pos);
+                if (!(t instanceof CommaToken)) {
+                    break;
+                }
+    
+                ParseResult<Param> next = param(pos + 1);
+                params.add(next.result());
+                pos = next.nextPos();
+            }
+        } catch (ParseException e) {
+            // It's okay to have no parameters — empty list
+        }
+    
+        return new ParseResult<>(params, pos);
+    }
+    
+    //structdef ::= `struct` structname `{` comma_param `}`
+    public ParseResult<StructDef> structDef(int startPos) throws ParseException {
+        int pos = startPos;
+    
+        assertTokenIs(pos, new StructToken());
+        Token nameTok = getToken(pos + 1);
+    
+        if (!(nameTok instanceof IdentifierToken id)) {
+            throw new ParseException("Expected struct name at position " + (pos + 1));
+        }
+    
+        assertTokenIs(pos + 2, new LCurlyToken());
+        ParseResult<List<Param>> fields = commaParam(pos + 3);
+        assertTokenIs(fields.nextPos(), new RCurlyToken());
+    
+        return new ParseResult<>(
+            new StructDef(id.name(), fields.result()),
+            fields.nextPos() + 1
+        );
+    }
+
+    // Definition of an abstract method
+    // abs_methoddef ::= `method` var (` comma_param `)` `:` type `;`
+    public ParseResult<AbsMethodDef> absMethodDef(int startPos) throws ParseException {
+        int pos = startPos;
+    
+        assertTokenIs(pos, new MethodToken());
+        Token nameTok = getToken(pos + 1);
+    
+        if (!(nameTok instanceof IdentifierToken id)) {
+            throw new ParseException("Expected method name at position " + (pos + 1));
+        }
+    
+        assertTokenIs(pos + 2, new LParenToken());
+        ParseResult<List<Param>> params = commaParam(pos + 3);
+        assertTokenIs(params.nextPos(), new RParenToken());
+        assertTokenIs(params.nextPos() + 1, new ColonToken());
+    
+        ParseResult<Type> returnType = type(params.nextPos() + 2);
+        assertTokenIs(returnType.nextPos(), new SemicolonToken());
+    
+        return new ParseResult<>(
+            new AbsMethodDef(id.name(), params.result(), returnType.result()),
+            returnType.nextPos() + 1
+        );
+    }
+    
+
+    //conc_methoddef ::= `method` var `(` comma_param `)` `:` type `{` stmt* `}`
+    public ParseResult<ConcMethodDef> concMethodDef(int startPos) throws ParseException {
+        int pos = startPos;
+    
+        assertTokenIs(pos, new MethodToken());
+        Token nameTok = getToken(pos + 1);
+    
+        if (!(nameTok instanceof IdentifierToken id)) {
+            throw new ParseException("Expected method name at position " + (pos + 1));
+        }
+    
+        assertTokenIs(pos + 2, new LParenToken());
+        ParseResult<List<Param>> params = commaParam(pos + 3);
+        assertTokenIs(params.nextPos(), new RParenToken());
+        assertTokenIs(params.nextPos() + 1, new ColonToken());
+    
+        ParseResult<Type> returnType = type(params.nextPos() + 2);
+        assertTokenIs(returnType.nextPos(), new LCurlyToken());
+    
+        List<Stmt> body = new ArrayList<>();
+        int bodyPos = returnType.nextPos() + 1;
+        while (true) {
+            try {
+                ParseResult<Stmt> stmtRes = stmt(bodyPos);
+                body.add(stmtRes.result());
+                bodyPos = stmtRes.nextPos();
+            } catch (ParseException e) {
+                break;
+            }
+        }
+    
+        assertTokenIs(bodyPos, new RCurlyToken());
+    
+        return new ParseResult<>(
+            new ConcMethodDef(id.name(), params.result(), returnType.result(), body),
+            bodyPos + 1
+        );
+    }
+    
+    // Definition of a trait (typeclass)
+    // traitdef ::= `trait` traitname `{` abs_methoddef* `}`
+    
+
+
+
+    // Definition of an implementation of a typeclass
+    // impldef ::= `impl` traitname `for` type `{` conc_methoddef* `}`
+
+    // Definition of a toplevel function
+    // funcdef ::= `func` var `(` comma_param `)` `:` type
+    //             `{` stmt* `}` 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // exp ::= addExp
     public ParseResult<Exp> exp(final int startPos) throws ParseException {
         return addExp(startPos);

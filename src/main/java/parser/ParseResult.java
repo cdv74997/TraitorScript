@@ -11,3 +11,4 @@ public record ParseResult<T>(T result, int nextPos) {}
 //         this.nextPos = nextPos;
 //     }
 // }
+//might need to use this

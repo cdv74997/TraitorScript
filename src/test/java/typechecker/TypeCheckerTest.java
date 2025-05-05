@@ -1,71 +1,44 @@
-package typechecker;
+package typechecker;  // This is your test package, should match where the test is located.
 
-import java.util.Optional;
-import java.util.ArrayList;
+import typechecker.TypeChecker;  // Import the classes you're testing
+import typechecker.Type;
+import typechecker.Expression;
+import typechecker.IntLiteralExpr;
+import typechecker.IntType;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import org.junit.jupiter.api.Test; 
+import java.util.Map;
+import java.util.HashMap;
 
-@Test 
-public void testIntegerLiteralType(){ }
 
-@Test 
-public void testBooleanLiteralType(){ }
+import static org.junit.jupiter.api.Assertions.assertTrue; // Import JUnit assertions
 
-@Test 
-public void testSelfReferenceInTrait(){ }
+import org.junit.jupiter.api.Test; // Import JUnit annotations
 
-@Test 
-public void testStructInstantiationWithCorrectFields(){ }
+public class TypeCheckerTest {
+    @Test 
+    public void testIntegerLiteralType() {
+        TypeChecker checker = new TypeChecker();
+        Map<String, Type> localEnv = new HashMap<>();
 
-@Test 
-public void testStructMissingFieldFails(){ }
+        Expression expr = new IntLiteralExpr(42);
+        Type result = checker.checkExpression(expr, localEnv);
 
-@Test 
-public void testStructFieldAccessTypeCorrectness(){ }
+        assertTrue(result instanceof IntType, "Expected IntType, but got: " + result.getClass().getSimpleName());
+    }
 
-@Test 
-public void testTraitImplementationForStruct(){}
+    @Test
+    public void testBooleanLiteralType() {
+        TypeChecker tc = new TypeChecker();
+        Map<String, Type> env = new HashMap<>();
 
-@Test 
-public void testTraitMethodTypeResolution(){}
+        Expression trueExpr = new BooleanLiteralExpr(true);
+        Expression falseExpr = new BooleanLiteralExpr(false);
 
-@Test 
-public void testTraitMethodCallOnStructInstance(){ }
+        Type type1 = tc.checkExpression(trueExpr, env);
+        Type type2 = tc.checkExpression(falseExpr, env);
 
-@Test 
-public void testFunctionOverloadResolvesCorrectly() { }
+        assertTrue(type1 instanceof BooleanType);
+        assertTrue(type2 instanceof BooleanType);
+    }
+}
 
-@Test 
-public void testAmbiguousOverloadCausesError() { }
-
-@Test 
-public void testHigherOrderFunctionParameterType() { }
-
-@Test 
-public void testFunctionReturningFunctionType() { }
-
-@Test 
-public void testArithmeticExpressionType() {  }
-
-@Test 
-public void testComparisonExpressionReturnsBoolean() {  }
-
-@Test 
-public void testMethodCallExpressionTypeCorrectness() { }
-
-@Test 
-public void testIfStatementTypeCheck() { }
-
-@Test 
-public void testReturnTypeMatchesFunction() { }
-
-@Test 
-public void testVoidFunctionDoesNotReturnValue() {  }
-
-@Test 
-public void testFullProgramTypeCheckPasses() { }
-
-@Test 
-public void testProgramWithTypeErrorFails() { }

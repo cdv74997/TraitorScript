@@ -1,11 +1,12 @@
+package typechecker;
 import java.util.*;
 
 
 
 
-interface Type {}
 
-class IntType implements Type {}
+
+
 class VoidType implements Type {}
 class BooleanType implements Type {}
 
@@ -23,6 +24,15 @@ class FunctionType implements Type {
         this.returnType = returnType;
     }
 }
+
+class BooleanLiteralExpr implements Expression {
+    boolean value;
+
+    BooleanLiteralExpr(boolean value) {
+        this.value = value;
+    }
+}
+
 
 
 class StructDef {
@@ -82,8 +92,8 @@ class Param {
 }
 
 
-interface Statement {}
-interface Expression {}
+
+
 
 class LetStatement implements Statement {
     Param param;
@@ -118,10 +128,6 @@ class VariableExpr implements Expression {
     VariableExpr(String name) { this.name = name; }
 }
 
-class IntLiteralExpr implements Expression {
-    int value;
-    IntLiteralExpr(int value) { this.value = value; }
-}
 
 class BinaryExpr implements Expression {
     String op;
@@ -219,6 +225,8 @@ public class TypeChecker {
                 throw new RuntimeException("Operands must be Int");
             }
             return new IntType();
+        } else if (expr instanceof BooleanLiteralExpr) {
+            return new BooleanType();
         }
         throw new RuntimeException("Unsupported expression");
     }

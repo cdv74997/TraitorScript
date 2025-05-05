@@ -1,1 +1,2 @@
-tokenizer/TokenizerTest.class
+typechecker\TypeCheckerTest.class
+tokenizer\TokenizerTest.class

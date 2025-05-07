@@ -10,6 +10,44 @@ import java.util.*;
 class VoidType implements Type {}
 class BooleanType implements Type {}
 
+class MethodDef {
+    String name;
+    List<Param> params;
+    Type returnType;
+    List<Statement> body;
+
+    MethodDef(String name, List<Param> params, Type returnType, List<Statement> body) {
+        this.name = name;
+        this.params = params;
+        this.returnType = returnType;
+        this.body = body;
+    }
+}
+
+class MethodCallExpr implements Expression {
+    Expression receiver;
+    String methodName;
+    List<Expression> arguments;
+
+    MethodCallExpr(Expression receiver, String methodName, List<Expression> arguments) {
+        this.receiver = receiver;
+        this.methodName = methodName;
+        this.arguments = arguments;
+    }
+}
+
+
+class CallExpr implements Expression {
+    Expression callee;
+    List<Expression> arguments;
+
+    CallExpr(Expression callee, List<Expression> arguments) {
+        this.callee = callee;
+        this.arguments = arguments;
+    }
+}
+
+
 class StructType implements Type {
     String name;
     StructType(String name) { this.name = name; }
@@ -140,6 +178,16 @@ class BinaryExpr implements Expression {
     }
 }
 
+class StructInstantiationExpr implements Expression {
+    String structName;
+    Map<String, Expression> fieldValues;
+
+    StructInstantiationExpr(String structName, Map<String, Expression> fieldValues) {
+        this.structName = structName;
+        this.fieldValues = fieldValues;
+    }
+}
+
 
 
 class TypeEnvironment {
@@ -151,7 +199,10 @@ class TypeEnvironment {
 
 
 public class TypeChecker {
+    // Store ImplDefs by trait name
+    public Map<String, ImplDef> implDefs = new HashMap<>();
 
+    
     TypeEnvironment env = new TypeEnvironment();
 
     public void checkStruct(StructDef struct) {
@@ -227,7 +278,123 @@ public class TypeChecker {
             return new IntType();
         } else if (expr instanceof BooleanLiteralExpr) {
             return new BooleanType();
+        } else if (expr instanceof StructInstantiationExpr) {
+            StructInstantiationExpr structExpr = (StructInstantiationExpr) expr;
+            StructDef def = env.structs.get(structExpr.structName);
+
+            if (def == null) {
+                throw new RuntimeException("Unknown struct: " + structExpr.structName);
+            }
+
+            // Check all required fields are present
+            for (String fieldName : def.fields.keySet()) {
+                if (!structExpr.fieldValues.containsKey(fieldName)) {
+                    throw new IllegalArgumentException("Missing field: " + fieldName + " in struct instantiation of " + structExpr.structName);
+                }
+            }
+
+            // Check no extra fields are given
+            for (String givenField : structExpr.fieldValues.keySet()) {
+                if (!def.fields.containsKey(givenField)) {
+                    throw new RuntimeException("Unexpected field: " + givenField + " in struct instantiation of " + structExpr.structName);
+                }
+            }
+
+            // Type-check each field
+            for (Map.Entry<String, Expression> entry : structExpr.fieldValues.entrySet()) {
+                String field = entry.getKey();
+                Expression valueExpr = entry.getValue();
+                Type expected = def.fields.get(field);
+                Type actual = checkExpression(valueExpr, localEnv);
+
+                if (!actual.getClass().equals(expected.getClass())) {
+                    throw new RuntimeException("Type mismatch in field '" + field + "' of struct " + structExpr.structName +
+                        ": expected " + expected.getClass().getSimpleName() + ", got " + actual.getClass().getSimpleName());
+                }
+            }
+
+            return new StructType(structExpr.structName);
+        } else if (expr instanceof CallExpr) {
+        CallExpr call = (CallExpr) expr;
+        Type calleeType = checkExpression(call.callee, localEnv);
+
+        // Handle function call
+        if (calleeType instanceof FunctionType) {
+            FunctionType funcType = (FunctionType) calleeType;
+            if (call.arguments.size() != funcType.paramTypes.size()) {
+                throw new RuntimeException("Argument count mismatch in function call");
+            }
+
+            for (int i = 0; i < call.arguments.size(); i++) {
+                Type argType = checkExpression(call.arguments.get(i), localEnv);
+                Type expectedType = funcType.paramTypes.get(i);
+                if (!argType.getClass().equals(expectedType.getClass())) {
+                    throw new RuntimeException("Argument type mismatch at position " + i +
+                        ": expected " + expectedType.getClass().getSimpleName() +
+                        ", got " + argType.getClass().getSimpleName());
+                }
+            }
+            return funcType.returnType;
         }
+
+        // Handle method call for struct implementations
+        if (calleeType instanceof StructType) {
+            StructType structType = (StructType) calleeType;
+            List<ImplDef> implsForStruct = env.impls.getOrDefault(structType.name, new ArrayList<>());
+
+            for (List<ImplDef> implList : env.impls.values()) {
+                for (ImplDef impl : implList) {
+                    if (impl.forType instanceof StructType) {
+                        StructType implType = (StructType) impl.forType;
+                        if (implType.name.equals(structType.name)) {
+                            implsForStruct.add(impl);
+                        }
+                    }
+                }
+            }
+            throw new RuntimeException("Method " + call.callee + " not found for struct " + structType.name);
+        }
+
+        throw new RuntimeException("Trying to call a non-function or non-method");
+    } else if (expr instanceof MethodCallExpr) {
+        MethodCallExpr mcall = (MethodCallExpr) expr;
+        Type receiverType = checkExpression(mcall.receiver, localEnv);
+    
+        if (!(receiverType instanceof StructType)) {
+            throw new RuntimeException("Method call on non-struct type");
+        }
+    
+        StructType structType = (StructType) receiverType;
+    
+        for (List<ImplDef> implList : env.impls.values()) {
+            for (ImplDef impl : implList) {
+                if (!(impl.forType instanceof StructType)) continue;
+                StructType forStruct = (StructType) impl.forType;
+                if (!forStruct.name.equals(structType.name)) continue;
+    
+                FunctionType methodType = impl.methods.get(mcall.methodName);
+                if (methodType == null) continue;
+    
+                if (mcall.arguments.size() != methodType.paramTypes.size()) {
+                    throw new RuntimeException("Argument count mismatch in method call");
+                }
+    
+                for (int i = 0; i < mcall.arguments.size(); i++) {
+                    Type argType = checkExpression(mcall.arguments.get(i), localEnv);
+                    Type expectedType = methodType.paramTypes.get(i);
+                    if (!argType.getClass().equals(expectedType.getClass())) {
+                        throw new RuntimeException("Argument type mismatch at position " + i);
+                    }
+                }
+    
+                return methodType.returnType;
+            }
+        }
+    
+        throw new RuntimeException("Method " + mcall.methodName + " not found for struct " + structType.name);
+    }
+
+
         throw new RuntimeException("Unsupported expression");
     }
 }

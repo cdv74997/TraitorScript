@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="typechecker.TypeCheckerTest" time="0.013" tests="2" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="typechecker.TypeCheckerTest" time="0.055" tests="5" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="20"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-20\bin"/>
-    <property name="sun.java.command" value="C:\Users\John\AppData\Local\Temp\surefire5340407985447096655\surefirebooter7907271119175251698.jar C:\Users\John\AppData\Local\Temp\surefire5340407985447096655 2025-05-05T01-22-27_593-jvmRun1 surefire15899038372924625077tmp surefire_02866364571024388645tmp"/>
+    <property name="sun.java.command" value="C:\Users\John\AppData\Local\Temp\surefire2830685857538753255\surefirebooter8298577630024017002.jar C:\Users\John\AppData\Local\Temp\surefire2830685857538753255 2025-05-06T23-40-09_753-jvmRun1 surefire13991009730937103539tmp surefire_03669191050518140433tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\John\TraitorScript\target\test-classes;C:\Users\John\TraitorScript\target\classes;C:\Users\John\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.7.0\junit-jupiter-api-5.7.0.jar;C:\Users\John\.m2\repository\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar;C:\Users\John\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\John\.m2\repository\org\junit\platform\junit-platform-commons\1.7.0\junit-platform-commons-1.7.0.jar;C:\Users\John\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.7.0\junit-jupiter-engine-5.7.0.jar;C:\Users\John\.m2\repository\org\junit\platform\junit-platform-engine\1.7.0\junit-platform-engine-1.7.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\John\AppData\Local\Temp\surefire5340407985447096655\surefirebooter7907271119175251698.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\John\AppData\Local\Temp\surefire2830685857538753255\surefirebooter8298577630024017002.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="20.0.2+9-78"/>
@@ -58,6 +58,9 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="64.0"/>
   </properties>
-  <testcase name="testIntegerLiteralType" classname="typechecker.TypeCheckerTest" time="0.008"/>
-  <testcase name="testBooleanLiteralType" classname="typechecker.TypeCheckerTest" time="0.004"/>
+  <testcase name="testTraitMethodReference" classname="typechecker.TypeCheckerTest" time="0.028"/>
+  <testcase name="testIntegerLiteralType" classname="typechecker.TypeCheckerTest" time="0.001"/>
+  <testcase name="testStructMissingFieldsFails" classname="typechecker.TypeCheckerTest" time="0.012"/>
+  <testcase name="testBooleanLiteralType" classname="typechecker.TypeCheckerTest" time="0.007"/>
+  <testcase name="testStructInstantiationWithCorrectFields" classname="typechecker.TypeCheckerTest" time="0"/>
 </testsuite>

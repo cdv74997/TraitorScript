@@ -1,4 +1,5 @@
 typechecker\Statement.class
+typechecker\CallExpr.class
 tokenizer\Tokenizer.class
 tokenizer\ReturnToken.class
 tokenizer\MinusToken.class
@@ -12,6 +13,7 @@ typechecker\VariableExpr.class
 typechecker\Expression.class
 tokenizer\BooleanToken.class
 typechecker\TraitDef.class
+typechecker\MethodCallExpr.class
 tokenizer\CommaToken.class
 tokenizer\RCurlyToken.class
 typechecker\BooleanLiteralExpr.class
@@ -21,6 +23,7 @@ typechecker\Param.class
 typechecker\TypeChecker.class
 tokenizer\EqualsToken.class
 typechecker\FunctionDef.class
+typechecker\StructInstantiationExpr.class
 typechecker\ReturnStatement.class
 tokenizer\ColonToken.class
 tokenizer\NEqualsToken.class
@@ -49,6 +52,7 @@ tokenizer\Token.class
 tokenizer\DotToken.class
 typechecker\FunctionType.class
 tokenizer\TrueToken.class
+typechecker\MethodDef.class
 tokenization_example\TokenizerException.class
 tokenizer\StarToken.class
 tokenizer\NewToken.class

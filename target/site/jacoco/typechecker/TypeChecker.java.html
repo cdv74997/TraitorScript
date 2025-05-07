@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TypeChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TraitorScript</a> &gt; <a href="index.source.html" class="el_package">typechecker</a> &gt; <span class="el_source">TypeChecker.java</span></div><h1>TypeChecker.java</h1><pre class="source lang-java linenums">package typechecker;
+import java.util.*;
+
+
+
+
+
+
+
+<span class="fc" id="L10">class VoidType implements Type {}</span>
+<span class="fc" id="L11">class BooleanType implements Type {}</span>
+
+class MethodDef {
+    String name;
+    List&lt;Param&gt; params;
+    Type returnType;
+    List&lt;Statement&gt; body;
+
+<span class="fc" id="L19">    MethodDef(String name, List&lt;Param&gt; params, Type returnType, List&lt;Statement&gt; body) {</span>
+<span class="fc" id="L20">        this.name = name;</span>
+<span class="fc" id="L21">        this.params = params;</span>
+<span class="fc" id="L22">        this.returnType = returnType;</span>
+<span class="fc" id="L23">        this.body = body;</span>
+<span class="fc" id="L24">    }</span>
+}
+
+class MethodCallExpr implements Expression {
+    Expression receiver;
+    String methodName;
+    List&lt;Expression&gt; arguments;
+
+<span class="fc" id="L32">    MethodCallExpr(Expression receiver, String methodName, List&lt;Expression&gt; arguments) {</span>
+<span class="fc" id="L33">        this.receiver = receiver;</span>
+<span class="fc" id="L34">        this.methodName = methodName;</span>
+<span class="fc" id="L35">        this.arguments = arguments;</span>
+<span class="fc" id="L36">    }</span>
+}
+
+
+class CallExpr implements Expression {
+    Expression callee;
+    List&lt;Expression&gt; arguments;
+
+<span class="nc" id="L44">    CallExpr(Expression callee, List&lt;Expression&gt; arguments) {</span>
+<span class="nc" id="L45">        this.callee = callee;</span>
+<span class="nc" id="L46">        this.arguments = arguments;</span>
+<span class="nc" id="L47">    }</span>
+}
+
+
+class StructType implements Type {
+    String name;
+<span class="fc" id="L53">    StructType(String name) { this.name = name; }</span>
+}
+
+class FunctionType implements Type {
+    List&lt;Type&gt; paramTypes;
+    Type returnType;
+
+<span class="fc" id="L60">    FunctionType(List&lt;Type&gt; paramTypes, Type returnType) {</span>
+<span class="fc" id="L61">        this.paramTypes = paramTypes;</span>
+<span class="fc" id="L62">        this.returnType = returnType;</span>
+<span class="fc" id="L63">    }</span>
+}
+
+class BooleanLiteralExpr implements Expression {
+    boolean value;
+
+<span class="fc" id="L69">    BooleanLiteralExpr(boolean value) {</span>
+<span class="fc" id="L70">        this.value = value;</span>
+<span class="fc" id="L71">    }</span>
+}
+
+
+
+class StructDef {
+    String name;
+    Map&lt;String, Type&gt; fields;
+
+<span class="fc" id="L80">    StructDef(String name, Map&lt;String, Type&gt; fields) {</span>
+<span class="fc" id="L81">        this.name = name;</span>
+<span class="fc" id="L82">        this.fields = fields;</span>
+<span class="fc" id="L83">    }</span>
+}
+
+class TraitDef {
+    String name;
+    Map&lt;String, FunctionType&gt; methods;
+
+<span class="fc" id="L90">    TraitDef(String name, Map&lt;String, FunctionType&gt; methods) {</span>
+<span class="fc" id="L91">        this.name = name;</span>
+<span class="fc" id="L92">        this.methods = methods;</span>
+<span class="fc" id="L93">    }</span>
+}
+ 
+class ImplDef {
+    String traitName;
+    Type forType;
+    Map&lt;String, FunctionType&gt; methods;
+
+<span class="fc" id="L101">    ImplDef(String traitName, Type forType, Map&lt;String, FunctionType&gt; methods) {</span>
+<span class="fc" id="L102">        this.traitName = traitName;</span>
+<span class="fc" id="L103">        this.forType = forType;</span>
+<span class="fc" id="L104">        this.methods = methods;</span>
+<span class="fc" id="L105">    }</span>
+}
+
+class FunctionDef {
+    String name;
+    List&lt;Param&gt; params;
+    Type returnType;
+    List&lt;Statement&gt; body;
+
+<span class="nc" id="L114">    FunctionDef(String name, List&lt;Param&gt; params, Type returnType, List&lt;Statement&gt; body) {</span>
+<span class="nc" id="L115">        this.name = name;</span>
+<span class="nc" id="L116">        this.params = params;</span>
+<span class="nc" id="L117">        this.returnType = returnType;</span>
+<span class="nc" id="L118">        this.body = body;</span>
+<span class="nc" id="L119">    }</span>
+}
+
+class Param {
+    String name;
+    Type type;
+
+<span class="nc" id="L126">    Param(String name, Type type) {</span>
+<span class="nc" id="L127">        this.name = name;</span>
+<span class="nc" id="L128">        this.type = type;</span>
+<span class="nc" id="L129">    }</span>
+}
+
+
+
+
+
+class LetStatement implements Statement {
+    Param param;
+    Expression expr;
+
+<span class="nc" id="L140">    LetStatement(Param param, Expression expr) {</span>
+<span class="nc" id="L141">        this.param = param;</span>
+<span class="nc" id="L142">        this.expr = expr;</span>
+<span class="nc" id="L143">    }</span>
+}
+
+class AssignStatement implements Statement {
+    String var;
+    Expression expr;
+
+<span class="nc" id="L150">    AssignStatement(String var, Expression expr) {</span>
+<span class="nc" id="L151">        this.var = var;</span>
+<span class="nc" id="L152">        this.expr = expr;</span>
+<span class="nc" id="L153">    }</span>
+}
+
+class ReturnStatement implements Statement {
+    Expression expr;
+
+<span class="nc" id="L159">    ReturnStatement(Expression expr) {</span>
+<span class="nc" id="L160">        this.expr = expr;</span>
+<span class="nc" id="L161">    }</span>
+}
+
+class VariableExpr implements Expression {
+    String name;
+<span class="fc" id="L166">    VariableExpr(String name) { this.name = name; }</span>
+}
+
+
+class BinaryExpr implements Expression {
+    String op;
+    Expression left, right;
+
+<span class="nc" id="L174">    BinaryExpr(String op, Expression left, Expression right) {</span>
+<span class="nc" id="L175">        this.op = op;</span>
+<span class="nc" id="L176">        this.left = left;</span>
+<span class="nc" id="L177">        this.right = right;</span>
+<span class="nc" id="L178">    }</span>
+}
+
+class StructInstantiationExpr implements Expression {
+    String structName;
+    Map&lt;String, Expression&gt; fieldValues;
+
+<span class="fc" id="L185">    StructInstantiationExpr(String structName, Map&lt;String, Expression&gt; fieldValues) {</span>
+<span class="fc" id="L186">        this.structName = structName;</span>
+<span class="fc" id="L187">        this.fieldValues = fieldValues;</span>
+<span class="fc" id="L188">    }</span>
+}
+
+
+
+<span class="fc" id="L193">class TypeEnvironment {</span>
+<span class="fc" id="L194">    Map&lt;String, Type&gt; variables = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L195">    Map&lt;String, StructDef&gt; structs = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L196">    Map&lt;String, TraitDef&gt; traits = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L197">    Map&lt;String, List&lt;ImplDef&gt;&gt; impls = new HashMap&lt;&gt;();</span>
+}
+
+
+<span class="fc" id="L201">public class TypeChecker {</span>
+    // Store ImplDefs by trait name
+<span class="fc" id="L203">    public Map&lt;String, ImplDef&gt; implDefs = new HashMap&lt;&gt;();</span>
+
+    
+<span class="fc" id="L206">    TypeEnvironment env = new TypeEnvironment();</span>
+
+    public void checkStruct(StructDef struct) {
+<span class="fc" id="L209">        env.structs.put(struct.name, struct);</span>
+<span class="fc" id="L210">    }</span>
+
+    public void checkTrait(TraitDef trait) {
+<span class="fc" id="L213">        env.traits.put(trait.name, trait);</span>
+<span class="fc" id="L214">    }</span>
+
+    public void checkImpl(ImplDef impl) {
+<span class="fc" id="L217">        TraitDef trait = env.traits.get(impl.traitName);</span>
+<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (trait == null) {</span>
+<span class="nc" id="L219">            throw new RuntimeException(&quot;Unknown trait: &quot; + impl.traitName);</span>
+        }
+<span class="fc bfc" id="L221" title="All 2 branches covered.">        for (String method : trait.methods.keySet()) {</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">            if (!impl.methods.containsKey(method)) {</span>
+<span class="nc" id="L223">                throw new RuntimeException(&quot;Method &quot; + method + &quot; not implemented for trait &quot; + impl.traitName);</span>
+            }
+<span class="fc" id="L225">        }</span>
+<span class="fc" id="L226">        env.impls.computeIfAbsent(impl.traitName, k -&gt; new ArrayList&lt;&gt;()).add(impl);</span>
+<span class="fc" id="L227">    }</span>
+
+    public void checkFunction(FunctionDef func) {
+<span class="nc" id="L230">        Map&lt;String, Type&gt; localEnv = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        for (Param p : func.params) {</span>
+<span class="nc" id="L232">            localEnv.put(p.name, p.type);</span>
+<span class="nc" id="L233">        }</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        for (Statement stmt : func.body) {</span>
+<span class="nc" id="L235">            checkStatement(stmt, localEnv);</span>
+<span class="nc" id="L236">        }</span>
+<span class="nc" id="L237">    }</span>
+
+    public void checkStatement(Statement stmt, Map&lt;String, Type&gt; localEnv) {
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (stmt instanceof LetStatement) {</span>
+<span class="nc" id="L241">            LetStatement let = (LetStatement) stmt;</span>
+<span class="nc" id="L242">            Type exprType = checkExpression(let.expr, localEnv);</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">            if (!exprType.getClass().equals(let.param.type.getClass())) {</span>
+<span class="nc" id="L244">                throw new RuntimeException(&quot;Type mismatch in let statement: expected &quot; + let.param.type + &quot;, got &quot; + exprType);</span>
+            }
+<span class="nc" id="L246">            localEnv.put(let.param.name, let.param.type);</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">        } else if (stmt instanceof AssignStatement) {</span>
+<span class="nc" id="L248">            AssignStatement assign = (AssignStatement) stmt;</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">            if (!localEnv.containsKey(assign.var)) {</span>
+<span class="nc" id="L250">                throw new RuntimeException(&quot;Unknown variable: &quot; + assign.var);</span>
+            }
+<span class="nc" id="L252">            Type exprType = checkExpression(assign.expr, localEnv);</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (!exprType.getClass().equals(localEnv.get(assign.var).getClass())) {</span>
+<span class="nc" id="L254">                throw new RuntimeException(&quot;Type mismatch in assignment&quot;);</span>
+            }
+<span class="nc bnc" id="L256" title="All 2 branches missed.">        } else if (stmt instanceof ReturnStatement) {</span>
+<span class="nc" id="L257">            ReturnStatement ret = (ReturnStatement) stmt;</span>
+<span class="nc" id="L258">            checkExpression(ret.expr, localEnv);</span>
+        }
+<span class="nc" id="L260">    }</span>
+
+    public Type checkExpression(Expression expr, Map&lt;String, Type&gt; localEnv) {
+<span class="fc bfc" id="L263" title="All 2 branches covered.">        if (expr instanceof IntLiteralExpr) {</span>
+<span class="fc" id="L264">            return new IntType();</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">        } else if (expr instanceof VariableExpr) {</span>
+<span class="fc" id="L266">            VariableExpr v = (VariableExpr) expr;</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">            if (!localEnv.containsKey(v.name)) {</span>
+<span class="nc" id="L268">                throw new RuntimeException(&quot;Unknown variable: &quot; + v.name);</span>
+            }
+<span class="fc" id="L270">            return localEnv.get(v.name);</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        } else if (expr instanceof BinaryExpr) {</span>
+<span class="nc" id="L272">            BinaryExpr bin = (BinaryExpr) expr;</span>
+<span class="nc" id="L273">            Type left = checkExpression(bin.left, localEnv);</span>
+<span class="nc" id="L274">            Type right = checkExpression(bin.right, localEnv);</span>
+<span class="nc bnc" id="L275" title="All 4 branches missed.">            if (!(left instanceof IntType &amp;&amp; right instanceof IntType)) {</span>
+<span class="nc" id="L276">                throw new RuntimeException(&quot;Operands must be Int&quot;);</span>
+            }
+<span class="nc" id="L278">            return new IntType();</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">        } else if (expr instanceof BooleanLiteralExpr) {</span>
+<span class="fc" id="L280">            return new BooleanType();</span>
+<span class="fc bfc" id="L281" title="All 2 branches covered.">        } else if (expr instanceof StructInstantiationExpr) {</span>
+<span class="fc" id="L282">            StructInstantiationExpr structExpr = (StructInstantiationExpr) expr;</span>
+<span class="fc" id="L283">            StructDef def = env.structs.get(structExpr.structName);</span>
+
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">            if (def == null) {</span>
+<span class="nc" id="L286">                throw new RuntimeException(&quot;Unknown struct: &quot; + structExpr.structName);</span>
+            }
+
+            // Check all required fields are present
+<span class="fc bfc" id="L290" title="All 2 branches covered.">            for (String fieldName : def.fields.keySet()) {</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">                if (!structExpr.fieldValues.containsKey(fieldName)) {</span>
+<span class="fc" id="L292">                    throw new IllegalArgumentException(&quot;Missing field: &quot; + fieldName + &quot; in struct instantiation of &quot; + structExpr.structName);</span>
+                }
+<span class="fc" id="L294">            }</span>
+
+            // Check no extra fields are given
+<span class="fc bfc" id="L297" title="All 2 branches covered.">            for (String givenField : structExpr.fieldValues.keySet()) {</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">                if (!def.fields.containsKey(givenField)) {</span>
+<span class="nc" id="L299">                    throw new RuntimeException(&quot;Unexpected field: &quot; + givenField + &quot; in struct instantiation of &quot; + structExpr.structName);</span>
+                }
+<span class="fc" id="L301">            }</span>
+
+            // Type-check each field
+<span class="fc bfc" id="L304" title="All 2 branches covered.">            for (Map.Entry&lt;String, Expression&gt; entry : structExpr.fieldValues.entrySet()) {</span>
+<span class="fc" id="L305">                String field = entry.getKey();</span>
+<span class="fc" id="L306">                Expression valueExpr = entry.getValue();</span>
+<span class="fc" id="L307">                Type expected = def.fields.get(field);</span>
+<span class="fc" id="L308">                Type actual = checkExpression(valueExpr, localEnv);</span>
+
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">                if (!actual.getClass().equals(expected.getClass())) {</span>
+<span class="nc" id="L311">                    throw new RuntimeException(&quot;Type mismatch in field '&quot; + field + &quot;' of struct &quot; + structExpr.structName +</span>
+<span class="nc" id="L312">                        &quot;: expected &quot; + expected.getClass().getSimpleName() + &quot;, got &quot; + actual.getClass().getSimpleName());</span>
+                }
+<span class="fc" id="L314">            }</span>
+
+<span class="fc" id="L316">            return new StructType(structExpr.structName);</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">        } else if (expr instanceof CallExpr) {</span>
+<span class="nc" id="L318">        CallExpr call = (CallExpr) expr;</span>
+<span class="nc" id="L319">        Type calleeType = checkExpression(call.callee, localEnv);</span>
+
+        // Handle function call
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (calleeType instanceof FunctionType) {</span>
+<span class="nc" id="L323">            FunctionType funcType = (FunctionType) calleeType;</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">            if (call.arguments.size() != funcType.paramTypes.size()) {</span>
+<span class="nc" id="L325">                throw new RuntimeException(&quot;Argument count mismatch in function call&quot;);</span>
+            }
+
+<span class="nc bnc" id="L328" title="All 2 branches missed.">            for (int i = 0; i &lt; call.arguments.size(); i++) {</span>
+<span class="nc" id="L329">                Type argType = checkExpression(call.arguments.get(i), localEnv);</span>
+<span class="nc" id="L330">                Type expectedType = funcType.paramTypes.get(i);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">                if (!argType.getClass().equals(expectedType.getClass())) {</span>
+<span class="nc" id="L332">                    throw new RuntimeException(&quot;Argument type mismatch at position &quot; + i +</span>
+<span class="nc" id="L333">                        &quot;: expected &quot; + expectedType.getClass().getSimpleName() +</span>
+<span class="nc" id="L334">                        &quot;, got &quot; + argType.getClass().getSimpleName());</span>
+                }
+            }
+<span class="nc" id="L337">            return funcType.returnType;</span>
+        }
+
+        // Handle method call for struct implementations
+<span class="nc bnc" id="L341" title="All 2 branches missed.">        if (calleeType instanceof StructType) {</span>
+<span class="nc" id="L342">            StructType structType = (StructType) calleeType;</span>
+<span class="nc" id="L343">            List&lt;ImplDef&gt; implsForStruct = env.impls.getOrDefault(structType.name, new ArrayList&lt;&gt;());</span>
+
+<span class="nc bnc" id="L345" title="All 2 branches missed.">            for (List&lt;ImplDef&gt; implList : env.impls.values()) {</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">                for (ImplDef impl : implList) {</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                    if (impl.forType instanceof StructType) {</span>
+<span class="nc" id="L348">                        StructType implType = (StructType) impl.forType;</span>
+<span class="nc bnc" id="L349" title="All 2 branches missed.">                        if (implType.name.equals(structType.name)) {</span>
+<span class="nc" id="L350">                            implsForStruct.add(impl);</span>
+                        }
+                    }
+<span class="nc" id="L353">                }</span>
+<span class="nc" id="L354">            }</span>
+<span class="nc" id="L355">            throw new RuntimeException(&quot;Method &quot; + call.callee + &quot; not found for struct &quot; + structType.name);</span>
+        }
+
+<span class="nc" id="L358">        throw new RuntimeException(&quot;Trying to call a non-function or non-method&quot;);</span>
+<span class="pc bpc" id="L359" title="1 of 2 branches missed.">    } else if (expr instanceof MethodCallExpr) {</span>
+<span class="fc" id="L360">        MethodCallExpr mcall = (MethodCallExpr) expr;</span>
+<span class="fc" id="L361">        Type receiverType = checkExpression(mcall.receiver, localEnv);</span>
+    
+<span class="pc bpc" id="L363" title="1 of 2 branches missed.">        if (!(receiverType instanceof StructType)) {</span>
+<span class="nc" id="L364">            throw new RuntimeException(&quot;Method call on non-struct type&quot;);</span>
+        }
+    
+<span class="fc" id="L367">        StructType structType = (StructType) receiverType;</span>
+    
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">        for (List&lt;ImplDef&gt; implList : env.impls.values()) {</span>
+<span class="pc bpc" id="L370" title="1 of 2 branches missed.">            for (ImplDef impl : implList) {</span>
+<span class="pc bpc" id="L371" title="1 of 2 branches missed.">                if (!(impl.forType instanceof StructType)) continue;</span>
+<span class="fc" id="L372">                StructType forStruct = (StructType) impl.forType;</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">                if (!forStruct.name.equals(structType.name)) continue;</span>
+    
+<span class="fc" id="L375">                FunctionType methodType = impl.methods.get(mcall.methodName);</span>
+<span class="pc bpc" id="L376" title="1 of 2 branches missed.">                if (methodType == null) continue;</span>
+    
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">                if (mcall.arguments.size() != methodType.paramTypes.size()) {</span>
+<span class="nc" id="L379">                    throw new RuntimeException(&quot;Argument count mismatch in method call&quot;);</span>
+                }
+    
+<span class="pc bpc" id="L382" title="1 of 2 branches missed.">                for (int i = 0; i &lt; mcall.arguments.size(); i++) {</span>
+<span class="nc" id="L383">                    Type argType = checkExpression(mcall.arguments.get(i), localEnv);</span>
+<span class="nc" id="L384">                    Type expectedType = methodType.paramTypes.get(i);</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">                    if (!argType.getClass().equals(expectedType.getClass())) {</span>
+<span class="nc" id="L386">                        throw new RuntimeException(&quot;Argument type mismatch at position &quot; + i);</span>
+                    }
+                }
+    
+<span class="fc" id="L390">                return methodType.returnType;</span>
+            }
+<span class="nc" id="L392">        }</span>
+    
+<span class="nc" id="L394">        throw new RuntimeException(&quot;Method &quot; + mcall.methodName + &quot; not found for struct &quot; + structType.name);</span>
+    }
+
+
+<span class="nc" id="L398">        throw new RuntimeException(&quot;Unsupported expression&quot;);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -209,6 +209,18 @@ public class TypeChecker {
         env.structs.put(struct.name, struct);
     }
 
+    public FunctionType getTraitMethodType(String traitName, String methodName, Type receiverType) {
+        List<ImplDef> impls = env.impls.get(traitName);
+        if (impls == null) return null;
+        for (ImplDef impl : impls) {
+            if (impl.forType.equals(receiverType)) {
+                return impl.methods.get(methodName);
+            }
+        }
+        return null;
+    }
+
+
     public void checkTrait(TraitDef trait) {
         env.traits.put(trait.name, trait);
     }

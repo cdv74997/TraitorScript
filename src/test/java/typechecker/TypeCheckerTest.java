@@ -1,6 +1,6 @@
-package typechecker;  // This is your test package, should match where the test is located.
+package typechecker;  
 
-import typechecker.TypeChecker;  // Import the classes you're testing
+import typechecker.TypeChecker; 
 import typechecker.Type;
 import typechecker.Expression;
 import typechecker.IntLiteralExpr;
@@ -11,12 +11,20 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import java.util.Collections;
+
+
+import java.util.Arrays;
 
 
 
-import static org.junit.jupiter.api.Assertions.assertTrue; // Import JUnit assertions
+import static org.junit.jupiter.api.Assertions.assertTrue; 
 
-import org.junit.jupiter.api.Test; // Import JUnit annotations
+import org.junit.jupiter.api.Test; 
 
 public class TypeCheckerTest {
     @Test 
@@ -127,6 +135,186 @@ public class TypeCheckerTest {
         Type result = checker.checkExpression(call, localEnv);
         assertTrue(result instanceof VoidType);
     }
+
+    
+
+    @Test
+    public void testTraitImplementationForStruct() {
+        TypeChecker typeChecker = new TypeChecker();
+    
+        TraitDef addableTrait = new TraitDef("Addable", new HashMap<>());
+        FunctionType addMethodType = new FunctionType(
+                Arrays.asList(new IntType()),
+                new IntType()
+        );
+        addableTrait.methods.put("add", addMethodType);
+    
+        StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
+        intWrapperStruct.fields.put("value", new IntType());
+    
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
+        addableForIntWrapper.methods.put("add", addMethodType);
+    
+        typeChecker.checkTrait(addableTrait);
+        typeChecker.checkStruct(intWrapperStruct);
+        typeChecker.checkImpl(addableForIntWrapper);
+    
+        assertTrue(typeChecker.env.impls.containsKey("Addable"),
+                   "ImplDef for Addable should be registered");
+    
+        List<ImplDef> implList = typeChecker.env.impls.get("Addable");
+        assertNotNull(implList, "Impl list for Addable should not be null");
+        assertFalse(implList.isEmpty(), "Impl list for Addable should not be empty");
+        
+        ImplDef retrievedImpl = implList.get(0);
+        assertEquals("IntWrapper", ((StructType) retrievedImpl.forType).name,
+                     "Implementation type should be IntWrapper");
+        
+        assertTrue(retrievedImpl.methods.containsKey("add"),
+           "Method add should exist in the implementation");
+    }
+
+    @Test 
+    public void testTraitMethodTypeResolution() {
+        TypeChecker typeChecker = new TypeChecker();
+        
+        // Define the 'Addable' trait with a method 'add'
+        TraitDef addableTrait = new TraitDef("Addable", new HashMap<>());
+        FunctionType addMethodType = new FunctionType(
+                Arrays.asList(new IntType()),  // Parameter type: Int
+                new IntType()                  // Return type: Int
+        );
+        addableTrait.methods.put("add", addMethodType);
+        
+        // Define the 'IntWrapper' struct with a field 'value' of type Int
+        StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
+        intWrapperStruct.fields.put("value", new IntType());
+        
+        // Implement 'Addable' for 'IntWrapper'
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
+        addableForIntWrapper.methods.put("add", addMethodType);
+        
+        // Register the trait, struct, and implementation
+        typeChecker.checkTrait(addableTrait);
+        typeChecker.checkStruct(intWrapperStruct);
+        typeChecker.checkImpl(addableForIntWrapper);
+        
+        // Ensure the implementation is registered
+        assertTrue(typeChecker.env.impls.containsKey("Addable"),
+                   "ImplDef for Addable should be registered");
+    
+        // Retrieve the ImplDef and validate it
+        List<ImplDef> implList = typeChecker.env.impls.get("Addable");
+        ImplDef retrievedImpl = implList.get(0);
+        assertNotNull(retrievedImpl,
+                      "The implementation for Addable should not be null");
+        
+        // Validate that the implementation is for the correct struct type
+        assertEquals("IntWrapper", ((StructType) retrievedImpl.forType).name,
+                     "Implementation type should be IntWrapper");
+        
+        // Ensure the method 'add' exists in the implementation
+        assertTrue(retrievedImpl.methods.containsKey("add"),
+                   "Method add should exist in the implementation");
+    
+        // Validate the method's return type
+        FunctionType returnedAddMethod = (FunctionType) retrievedImpl.methods.get("add");
+        assertEquals(new IntType(), returnedAddMethod.returnType,
+                     "The return type of add method should be Int");
+        
+        // Validate the method's parameter type
+        assertEquals(Arrays.asList(new IntType()), returnedAddMethod.paramTypes,
+                     "The parameter type of add method should be Int");
+    }
+
+    @Test
+    public void testTraitMethodCallOnStructInstance() {
+        TypeChecker typeChecker = new TypeChecker();
+    
+        // Define the 'Addable' trait with a method 'add'
+        TraitDef addableTrait = new TraitDef("Addable", new HashMap<>());
+        FunctionType addMethodType = new FunctionType(
+                Arrays.asList(new IntType()),  // Parameter type: Int
+                new IntType()                  // Return type: Int
+        );
+        addableTrait.methods.put("add", addMethodType);
+    
+        // Define the 'IntWrapper' struct with a field 'value' of type Int
+        StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
+        intWrapperStruct.fields.put("value", new IntType());
+    
+        // Implement 'Addable' for 'IntWrapper'
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
+        addableForIntWrapper.methods.put("add", addMethodType);
+    
+        // Register the trait, struct, and implementation
+        typeChecker.checkTrait(addableTrait);
+        typeChecker.checkStruct(intWrapperStruct);
+        typeChecker.checkImpl(addableForIntWrapper);
+    
+        // Create an instance of IntWrapper using StructInstantiationExpr
+        Map<String, Expression> fields = new HashMap<>();
+        fields.put("value", new IntLiteralExpr(5));  // Assuming IntLiteralExpr represents integer literals
+        StructInstantiationExpr intWrapperInstance = new StructInstantiationExpr("IntWrapper", fields);
+    
+        // Ensure the instance is created
+        assertNotNull(intWrapperInstance, "Instance of IntWrapper should not be null");
+    
+        // Create a MethodCallExpr for calling 'add' on the IntWrapper instance
+        MethodCallExpr addMethodCall = new MethodCallExpr(
+                intWrapperInstance,           // Receiver expression (the struct instance itself)
+                "add",                        // Method name
+                Arrays.asList(new IntLiteralExpr(3))  // Argument (integer literal)
+        );
+    
+        // Perform type-checking and ensure no exceptions are thrown
+        Type returnType = typeChecker.checkExpression(addMethodCall, new HashMap<>());
+    
+        // Assert that the method call resolved to the correct return type (IntType)
+        assertEquals(new IntType().getClass(), returnType.getClass(), "The return type of the add method should be Int");
+    }
+
+    @Test
+    public void testArithmeticExpressionType() {
+        TypeChecker typeChecker = new TypeChecker();
+        // Create a sample type environment for testing
+        Map<String, Type> localEnv = new HashMap<>();
+        
+        // Add integer variables to the local environment
+        localEnv.put("a", new IntType());
+        localEnv.put("b", new IntType());
+    
+        // Test valid arithmetic expression (should return IntType)
+        BinaryExpr validExpr = new BinaryExpr("+", new VariableExpr("a"), new VariableExpr("b"));
+        Type result = typeChecker.checkExpression(validExpr, localEnv);
+        assertTrue(result instanceof IntType, "Expected IntType for valid arithmetic expression");
+        
+        // Test invalid arithmetic expression (should throw exception)
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            BinaryExpr invalidExpr = new BinaryExpr("+", new VariableExpr("a"), new BooleanLiteralExpr(true));
+            typeChecker.checkExpression(invalidExpr, localEnv);
+        });
+        assertTrue(thrown.getMessage().contains("Operands must be Int"), "Error message should indicate operand type mismatch");
+        
+        // Test another valid arithmetic expression (multiplication)
+        BinaryExpr validMulExpr = new BinaryExpr("*", new VariableExpr("a"), new VariableExpr("b"));
+        Type mulResult = typeChecker.checkExpression(validMulExpr, localEnv);
+        assertTrue(mulResult instanceof IntType, "Expected IntType for valid multiplication expression");
+    
+        // Test invalid multiplication (mixing IntType and BooleanType)
+        thrown = assertThrows(RuntimeException.class, () -> {
+            BinaryExpr invalidMulExpr = new BinaryExpr("*", new VariableExpr("a"), new BooleanLiteralExpr(true));
+            typeChecker.checkExpression(invalidMulExpr, localEnv);
+        });
+        assertTrue(thrown.getMessage().contains("Operands must be Int"), "Error message should indicate operand type mismatch");
+    }
+
+
+
+
+
+
+
 
 
 

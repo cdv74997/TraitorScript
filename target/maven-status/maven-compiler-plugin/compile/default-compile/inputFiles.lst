@@ -11,6 +11,7 @@ C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\FunctionType.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\tokenizer\NewToken.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\IntType.java
+C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\tokenizer\ArrowToken.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\ImplDef.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\StructDef.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\tokenizer\TraitToken.java
@@ -43,6 +44,7 @@ C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\NewExp.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\tokenizer\ForToken.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\tokenizer\NEqualsToken.java
+C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\StructActualParam.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\IfStmt.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\SelfExp.java
 C:\Users\joshg\OneDrive\Desktop\TraitorScriptComp430\TraitorScript\src\main\java\parser\SubOp.java

@@ -37,6 +37,7 @@ parser\FunctionType.class
 tokenizer\NEqualsToken.class
 tokenizer\WhileToken.class
 parser\BooleanType.class
+parser\StructActualParam.class
 parser\StructType.class
 parser\DotExp.class
 tokenizer\ImplToken.class
@@ -49,6 +50,7 @@ parser\ReturnStmt.class
 tokenizer\MethodToken.class
 tokenizer\FuncToken.class
 parser\OrOp.class
+tokenizer\ArrowToken.class
 tokenizer\BreakToken.class
 tokenizer\SlashToken.class
 parser\MulOp.class

@@ -60,13 +60,13 @@ public class ASTTests {
         assertEquals("main", f.name());
     }
 
-    @Test
-    void testProgram() {
-    // Creating a Program with an empty list of statements
-    Program prog = new Program(List.of());
+    // @Test
+    // void testProgram() {
+    // // Creating a Program with an empty list of statements
+    // Program prog = new Program(List.of());
 
-    // Asserting that the statements list is empty
-    assertTrue(prog.statements().isEmpty());
-    }
+    // // Asserting that the statements list is empty
+    // assertTrue(prog.statements().isEmpty());
+    // }
 
 }

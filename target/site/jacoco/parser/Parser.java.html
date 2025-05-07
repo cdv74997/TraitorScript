@@ -2,6 +2,7 @@
 
 import tokenizer.*;
 
+import java.beans.Expression;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,164 +10,684 @@ import java.util.Optional;
 public class Parser {
     public final Token[] tokens;
 
-<span class="fc" id="L12">    public Parser(final Token[] tokens) {</span>
-<span class="fc" id="L13">        this.tokens = tokens;</span>
-<span class="fc" id="L14">    }</span>
+<span class="fc" id="L13">    public Parser(final Token[] tokens) {</span>
+<span class="fc" id="L14">        this.tokens = tokens;</span>
+<span class="fc" id="L15">    }</span>
 
     public Token readToken(final int pos) throws ParseException {
-<span class="pc bpc" id="L17" title="1 of 4 branches missed.">        if (pos &lt; 0 || pos &gt;= tokens.length) {</span>
-<span class="fc" id="L18">            throw new ParseException(&quot;Ran out of tokens&quot;);</span>
+<span class="pc bpc" id="L18" title="1 of 4 branches missed.">        if (pos &lt; 0 || pos &gt;= tokens.length) {</span>
+<span class="fc" id="L19">            throw new ParseException(&quot;Ran out of tokens&quot;);</span>
         } else {
-<span class="fc" id="L20">            return tokens[pos];</span>
+<span class="fc" id="L21">            return tokens[pos];</span>
         }
     }
 
     public Token getToken(final int pos) throws ParseException {
-<span class="fc" id="L25">        return readToken(pos);</span>
+<span class="fc" id="L26">        return readToken(pos);</span>
     }
 
     public void assertTokenIs(final int pos, final Token expected) throws ParseException {
-<span class="fc" id="L29">        final Token received = getToken(pos);</span>
-<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (!expected.equals(received)) {</span>
-<span class="fc" id="L31">            throw new ParseException(&quot;Expected: &quot; + expected + &quot;, got: &quot; + received);</span>
+<span class="nc" id="L30">        final Token received = getToken(pos);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (!expected.equals(received)) {</span>
+<span class="nc" id="L32">            throw new ParseException(&quot;Expected: &quot; + expected + &quot;, got: &quot; + received);</span>
         }
-<span class="fc" id="L33">    }</span>
+<span class="nc" id="L34">    }</span>
+
+
+    // Parses: comma_type ::= [type (`,` type)*]
+    public ParseResult&lt;List&lt;Type&gt;&gt; commaType(final int startPos) throws ParseException {
+<span class="nc" id="L39">        List&lt;Type&gt; types = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L40">        int pos = startPos;</span>
+
+        try {
+<span class="nc" id="L43">            ParseResult&lt;Type&gt; first = type(pos);</span>
+<span class="nc" id="L44">            types.add(first.result());</span>
+<span class="nc" id="L45">            pos = first.nextPos();</span>
+
+            while (true) {
+<span class="nc" id="L48">                Token t = getToken(pos);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">                if (t instanceof CommaToken) {</span>
+<span class="nc" id="L50">                    ParseResult&lt;Type&gt; next = type(pos + 1);</span>
+<span class="nc" id="L51">                    types.add(next.result());</span>
+<span class="nc" id="L52">                    pos = next.nextPos();</span>
+                } else {
+                    break;
+                }
+<span class="nc" id="L56">            }</span>
+<span class="nc" id="L57">        } catch (ParseException e) {</span>
+            // empty list is valid
+<span class="nc" id="L59">        }</span>
+
+<span class="nc" id="L61">        return new ParseResult&lt;&gt;(types, pos);</span>
+    }
+
+    // type ::=
+    // `Int` | `Void` | `Boolean` | Built-in types
+    // `Self` | Refers to our own type in a trait
+    // structname | Structs are a valid kind of type
+    // `(` type `)` | Parenthesized type
+    // `(` comma_type `)` `=&gt;` type Higher-order function
+
+    public ParseResult&lt;Type&gt; type(int startPos) throws ParseException {
+<span class="nc" id="L72">        Token t = getToken(startPos);</span>
+    
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (t instanceof IntToken) {</span>
+<span class="nc" id="L75">            return new ParseResult&lt;&gt;(new IntType(), startPos + 1);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        } else if (t instanceof VoidToken) {</span>
+<span class="nc" id="L77">            return new ParseResult&lt;&gt;(new VoidType(), startPos + 1);</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        } else if (t instanceof BooleanToken) {</span>
+<span class="nc" id="L79">            return new ParseResult&lt;&gt;(new BooleanType(), startPos + 1);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        } else if (t instanceof SelfToken) {</span>
+<span class="nc" id="L81">            return new ParseResult&lt;&gt;(new SelfType(), startPos + 1);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">        } else if (t instanceof IdentifierToken id) {</span>
+<span class="nc" id="L83">            return new ParseResult&lt;&gt;(new StructType(id.name()), startPos + 1);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        } else if (t instanceof LParenToken) {</span>
+            // Could be parenthesized type or function type
+<span class="nc" id="L86">            ParseResult&lt;List&lt;Type&gt;&gt; paramTypes = commaType(startPos + 1);</span>
+<span class="nc" id="L87">            int nextPos = paramTypes.nextPos();</span>
+<span class="nc" id="L88">            assertTokenIs(nextPos, new RParenToken());</span>
+    
+            // Check for function arrow
+<span class="nc" id="L91">            Token afterParen = getToken(nextPos + 1);</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (afterParen instanceof ArrowToken) {</span>
+                // Function type: (comma_type) =&gt; type
+<span class="nc" id="L94">                ParseResult&lt;Type&gt; returnType = type(nextPos + 2);</span>
+<span class="nc" id="L95">                return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L96">                    new FunctionType(paramTypes.result(), returnType.result()),</span>
+<span class="nc" id="L97">                    returnType.nextPos()</span>
+                );
+            } else {
+                // Just parenthesized type
+<span class="nc" id="L101">                List&lt;Type&gt; types = paramTypes.result();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                if (types.size() != 1) {</span>
+<span class="nc" id="L103">                    throw new ParseException(&quot;Expected exactly one type in parentheses at &quot; + startPos);</span>
+                }
+<span class="nc" id="L105">                return new ParseResult&lt;&gt;(types.get(0), nextPos + 1);</span>
+            }
+        }
+    
+<span class="nc" id="L109">        throw new ParseException(&quot;Expected type at position &quot; + startPos + &quot;, got: &quot; + t);</span>
+    }
+    
+    
+    //param ::= var `:` type
+    public ParseResult&lt;Param&gt; param(int startPos) throws ParseException {
+<span class="nc" id="L115">        Token t = getToken(startPos);</span>
+    
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (!(t instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L118">            throw new ParseException(&quot;Expected variable name at position &quot; + startPos + &quot;, got: &quot; + t);</span>
+        }
+    
+<span class="nc" id="L121">        Token colon = getToken(startPos + 1);</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!(colon instanceof ColonToken)) {</span>
+<span class="nc" id="L123">            throw new ParseException(&quot;Expected ':' after variable at position &quot; + (startPos + 1) + &quot;, got: &quot; + colon);</span>
+        }
+    
+<span class="nc" id="L126">        ParseResult&lt;Type&gt; parsedType = type(startPos + 2);</span>
+<span class="nc" id="L127">        return new ParseResult&lt;&gt;(new Param(id.name(), parsedType.result()), parsedType.nextPos());</span>
+    }
+
+    //comma_param ::= [param (`,` param)*]
+    public ParseResult&lt;List&lt;Param&gt;&gt; commaParam(int startPos) throws ParseException {
+<span class="nc" id="L132">        List&lt;Param&gt; params = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L133">        int pos = startPos;</span>
+    
+        try {
+<span class="nc" id="L136">            ParseResult&lt;Param&gt; first = param(pos);</span>
+<span class="nc" id="L137">            params.add(first.result());</span>
+<span class="nc" id="L138">            pos = first.nextPos();</span>
+    
+            while (true) {
+<span class="nc" id="L141">                Token t = getToken(pos);</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">                if (!(t instanceof CommaToken)) {</span>
+<span class="nc" id="L143">                    break;</span>
+                }
+    
+<span class="nc" id="L146">                ParseResult&lt;Param&gt; next = param(pos + 1);</span>
+<span class="nc" id="L147">                params.add(next.result());</span>
+<span class="nc" id="L148">                pos = next.nextPos();</span>
+<span class="nc" id="L149">            }</span>
+<span class="nc" id="L150">        } catch (ParseException e) {</span>
+            // It's okay to have no parameters — empty list
+<span class="nc" id="L152">        }</span>
+    
+<span class="nc" id="L154">        return new ParseResult&lt;&gt;(params, pos);</span>
+    }
+    
+    //structdef ::= `struct` structname `{` comma_param `}`
+    public ParseResult&lt;StructDef&gt; structDef(int startPos) throws ParseException {
+<span class="nc" id="L159">        int pos = startPos;</span>
+    
+<span class="nc" id="L161">        assertTokenIs(pos, new StructToken());</span>
+<span class="nc" id="L162">        Token nameTok = getToken(pos + 1);</span>
+    
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (!(nameTok instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L165">            throw new ParseException(&quot;Expected struct name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L168">        assertTokenIs(pos + 2, new LCurlyToken());</span>
+<span class="nc" id="L169">        ParseResult&lt;List&lt;Param&gt;&gt; fields = commaParam(pos + 3);</span>
+<span class="nc" id="L170">        assertTokenIs(fields.nextPos(), new RCurlyToken());</span>
+    
+<span class="nc" id="L172">        return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L173">            new StructDef(id.name(), fields.result()),</span>
+<span class="nc" id="L174">            fields.nextPos() + 1</span>
+        );
+    }
+
+    // Definition of an abstract method
+    // abs_methoddef ::= `method` var (` comma_param `)` `:` type `;`
+    public ParseResult&lt;AbsMethodDef&gt; absMethodDef(int startPos) throws ParseException {
+<span class="nc" id="L181">        int pos = startPos;</span>
+    
+<span class="nc" id="L183">        assertTokenIs(pos, new MethodToken());</span>
+<span class="nc" id="L184">        Token nameTok = getToken(pos + 1);</span>
+    
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        if (!(nameTok instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L187">            throw new ParseException(&quot;Expected method name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L190">        assertTokenIs(pos + 2, new LParenToken());</span>
+<span class="nc" id="L191">        ParseResult&lt;List&lt;Param&gt;&gt; params = commaParam(pos + 3);</span>
+<span class="nc" id="L192">        assertTokenIs(params.nextPos(), new RParenToken());</span>
+<span class="nc" id="L193">        assertTokenIs(params.nextPos() + 1, new ColonToken());</span>
+    
+<span class="nc" id="L195">        ParseResult&lt;Type&gt; returnType = type(params.nextPos() + 2);</span>
+<span class="nc" id="L196">        assertTokenIs(returnType.nextPos(), new SemicolonToken());</span>
+    
+<span class="nc" id="L198">        return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L199">            new AbsMethodDef(id.name(), params.result(), returnType.result()),</span>
+<span class="nc" id="L200">            returnType.nextPos() + 1</span>
+        );
+    }
+    
+
+    //conc_methoddef ::= `method` var `(` comma_param `)` `:` type `{` stmt* `}`
+    public ParseResult&lt;ConcMethodDef&gt; concMethodDef(int startPos) throws ParseException {
+<span class="nc" id="L207">        int pos = startPos;</span>
+    
+<span class="nc" id="L209">        assertTokenIs(pos, new MethodToken());</span>
+<span class="nc" id="L210">        Token nameTok = getToken(pos + 1);</span>
+    
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        if (!(nameTok instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L213">            throw new ParseException(&quot;Expected method name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L216">        assertTokenIs(pos + 2, new LParenToken());</span>
+<span class="nc" id="L217">        ParseResult&lt;List&lt;Param&gt;&gt; params = commaParam(pos + 3);</span>
+<span class="nc" id="L218">        assertTokenIs(params.nextPos(), new RParenToken());</span>
+<span class="nc" id="L219">        assertTokenIs(params.nextPos() + 1, new ColonToken());</span>
+    
+<span class="nc" id="L221">        ParseResult&lt;Type&gt; returnType = type(params.nextPos() + 2);</span>
+<span class="nc" id="L222">        assertTokenIs(returnType.nextPos(), new LCurlyToken());</span>
+    
+<span class="nc" id="L224">        List&lt;Stmt&gt; body = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L225">        int bodyPos = returnType.nextPos() + 1;</span>
+        while (true) {
+            try {
+<span class="nc" id="L228">                ParseResult&lt;Stmt&gt; stmtRes = stmt(bodyPos);</span>
+<span class="nc" id="L229">                body.add(stmtRes.result());</span>
+<span class="nc" id="L230">                bodyPos = stmtRes.nextPos();</span>
+<span class="nc" id="L231">            } catch (ParseException e) {</span>
+<span class="nc" id="L232">                break;</span>
+<span class="nc" id="L233">            }</span>
+        }
+    
+<span class="nc" id="L236">        assertTokenIs(bodyPos, new RCurlyToken());</span>
+    
+<span class="nc" id="L238">        return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L239">            new ConcMethodDef(id.name(), params.result(), returnType.result(), body),</span>
+            bodyPos + 1
+        );
+    }
+    
+    // Definition of a trait (typeclass)
+    // traitdef ::= `trait` traitname `{` abs_methoddef* `}`
+    public ParseResult&lt;TraitDef&gt; traitDef(int startPos) throws ParseException {
+<span class="nc" id="L247">        int pos = startPos;</span>
+    
+<span class="nc" id="L249">        assertTokenIs(pos, new TraitToken());</span>
+<span class="nc" id="L250">        Token nameTok = getToken(pos + 1);</span>
+    
+<span class="nc bnc" id="L252" title="All 2 branches missed.">        if (!(nameTok instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L253">            throw new ParseException(&quot;Expected trait name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L256">        assertTokenIs(pos + 2, new LCurlyToken());</span>
+<span class="nc" id="L257">        List&lt;AbsMethodDef&gt; methods = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L258">        pos = pos + 3;</span>
+    
+        while (true) {
+            try {
+<span class="nc" id="L262">                ParseResult&lt;AbsMethodDef&gt; methodResult = absMethodDef(pos);</span>
+<span class="nc" id="L263">                methods.add(methodResult.result());</span>
+<span class="nc" id="L264">                pos = methodResult.nextPos();</span>
+<span class="nc" id="L265">            } catch (ParseException e) {</span>
+<span class="nc" id="L266">                break;</span>
+<span class="nc" id="L267">            }</span>
+        }
+    
+<span class="nc" id="L270">        assertTokenIs(pos, new RCurlyToken());</span>
+<span class="nc" id="L271">        return new ParseResult&lt;&gt;(new TraitDef(id.name(), methods), pos + 1);</span>
+    }
+    
+
+
+
+    // Definition of an implementation of a typeclass
+    // impldef ::= `impl` traitname `for` type `{` conc_methoddef* `}`
+    public ParseResult&lt;ImplDef&gt; implDef(int startPos) throws ParseException {
+<span class="nc" id="L280">        int pos = startPos;</span>
+    
+<span class="nc" id="L282">        assertTokenIs(pos, new ImplToken());</span>
+    
+<span class="nc" id="L284">        Token traitNameTok = getToken(pos + 1);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">        if (!(traitNameTok instanceof IdentifierToken traitNameId)) {</span>
+<span class="nc" id="L286">            throw new ParseException(&quot;Expected trait name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L289">        assertTokenIs(pos + 2, new ForToken());</span>
+    
+<span class="nc" id="L291">        ParseResult&lt;Type&gt; typeRes = type(pos + 3);</span>
+<span class="nc" id="L292">        pos = typeRes.nextPos();</span>
+    
+<span class="nc" id="L294">        assertTokenIs(pos, new LCurlyToken());</span>
+<span class="nc" id="L295">        pos++;</span>
+    
+<span class="nc" id="L297">        List&lt;ConcMethodDef&gt; methods = new ArrayList&lt;&gt;();</span>
+        while (true) {
+            try {
+<span class="nc" id="L300">                ParseResult&lt;ConcMethodDef&gt; methodRes = concMethodDef(pos);</span>
+<span class="nc" id="L301">                methods.add(methodRes.result());</span>
+<span class="nc" id="L302">                pos = methodRes.nextPos();</span>
+<span class="nc" id="L303">            } catch (ParseException e) {</span>
+<span class="nc" id="L304">                break;</span>
+<span class="nc" id="L305">            }</span>
+        }
+    
+<span class="nc" id="L308">        assertTokenIs(pos, new RCurlyToken());</span>
+<span class="nc" id="L309">        return new ParseResult&lt;&gt;(new ImplDef(traitNameId.name(), typeRes.result(), methods), pos + 1);</span>
+    }
+    
+
+    // Definition of a toplevel function
+    // funcdef ::= `func` var `(` comma_param `)` `:` type
+    //             `{` stmt* `}` 
+    public ParseResult&lt;FuncDef&gt; funcDef(int startPos) throws ParseException {
+<span class="nc" id="L317">        int pos = startPos;</span>
+    
+<span class="nc" id="L319">        assertTokenIs(pos, new FuncToken());</span>
+    
+<span class="nc" id="L321">        Token funcNameTok = getToken(pos + 1);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">        if (!(funcNameTok instanceof IdentifierToken funcNameId)) {</span>
+<span class="nc" id="L323">            throw new ParseException(&quot;Expected function name at position &quot; + (pos + 1));</span>
+        }
+    
+<span class="nc" id="L326">        assertTokenIs(pos + 2, new LParenToken());</span>
+<span class="nc" id="L327">        ParseResult&lt;List&lt;Param&gt;&gt; paramsRes = commaParam(pos + 3);</span>
+<span class="nc" id="L328">        int posAfterParams = paramsRes.nextPos();</span>
+<span class="nc" id="L329">        assertTokenIs(posAfterParams, new RParenToken());</span>
+    
+<span class="nc" id="L331">        assertTokenIs(posAfterParams + 1, new ColonToken());</span>
+<span class="nc" id="L332">        ParseResult&lt;Type&gt; returnTypeRes = type(posAfterParams + 2);</span>
+    
+<span class="nc" id="L334">        int posAfterReturnType = returnTypeRes.nextPos();</span>
+<span class="nc" id="L335">        assertTokenIs(posAfterReturnType, new LCurlyToken());</span>
+<span class="nc" id="L336">        pos = posAfterReturnType + 1;</span>
+    
+<span class="nc" id="L338">        List&lt;Stmt&gt; body = new ArrayList&lt;&gt;();</span>
+        while (true) {
+            try {
+<span class="nc" id="L341">                ParseResult&lt;Stmt&gt; stmtRes = stmt(pos);</span>
+<span class="nc" id="L342">                body.add(stmtRes.result());</span>
+<span class="nc" id="L343">                pos = stmtRes.nextPos();</span>
+<span class="nc" id="L344">            } catch (ParseException e) {</span>
+<span class="nc" id="L345">                break;</span>
+<span class="nc" id="L346">            }</span>
+        }
+    
+<span class="nc" id="L349">        assertTokenIs(pos, new RCurlyToken());</span>
+<span class="nc" id="L350">        return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L351">            new FuncDef(funcNameId.name(), paramsRes.result(), returnTypeRes.result(), body),</span>
+            pos + 1
+        );
+    }
+    
+
+    // stmt ::= `let` param `=` exp `;` | Variable declaration
+    //      var `=` exp `;` | Assignment
+    //      `if` `(` exp `)` stmt [`else` stmt] | if
+    //      `while` `(` exp `)` stmt | while
+    //      `break` `;` | break
+    //      `println` `(` exp `)` | Printing something
+    //      `{` stmt* `}` | Block
+    //      `return` [exp] `;` | Return
+    //      exp `;` Expression statements
+
+    public ParseResult&lt;Stmt&gt; stmt(final int startPos) throws ParseException {
+<span class="nc" id="L368">        Token t = getToken(startPos);</span>
+    
+        // let param = exp;
+        // if (t instanceof LetToken) {
+        //     ParseResult&lt;Param&gt; paramRes = param(startPos + 1);
+        //     assertTokenIs(paramRes.nextPos(), new EqualsToken());
+        //     ParseResult&lt;Exp&gt; rhs = exp(paramRes.nextPos() + 1);
+        //     assertTokenIs(rhs.nextPos(), new SemicolonToken());
+        //     return new ParseResult&lt;&gt;(new LetStmt(paramRes.result(), rhs.result()), rhs.nextPos() + 1);
+        // }
+<span class="nc bnc" id="L378" title="All 2 branches missed.">        if (t instanceof LetToken) {</span>
+<span class="nc" id="L379">            ParseResult&lt;Param&gt; paramRes = param(startPos + 1);</span>
+<span class="nc" id="L380">            assertTokenIs(paramRes.nextPos(), new EqualsToken());</span>
+<span class="nc" id="L381">            ParseResult&lt;Exp&gt; rhs = exp(paramRes.nextPos() + 1);</span>
+<span class="nc" id="L382">            assertTokenIs(rhs.nextPos(), new SemicolonToken());</span>
+        
+<span class="nc" id="L384">            Param p = paramRes.result();</span>
+<span class="nc" id="L385">            return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L386">                new LetStmt(p.name(), p.type(), rhs.result()),</span>
+<span class="nc" id="L387">                rhs.nextPos() + 1</span>
+            );
+        }
+        
+    
+        // var = exp;
+<span class="nc bnc" id="L393" title="All 2 branches missed.">        if (t instanceof IdentifierToken id1 &amp;&amp;</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">            getToken(startPos + 1) instanceof EqualsToken) {</span>
+<span class="nc" id="L395">            ParseResult&lt;Exp&gt; rhs = exp(startPos + 2);</span>
+<span class="nc" id="L396">            assertTokenIs(rhs.nextPos(), new SemicolonToken());</span>
+<span class="nc" id="L397">            return new ParseResult&lt;&gt;(new AssignStmt(id1.name(), rhs.result()), rhs.nextPos() + 1);</span>
+        }
+    
+        // if (exp) stmt [else stmt]
+<span class="nc bnc" id="L401" title="All 2 branches missed.">        if (t instanceof IfToken) {</span>
+<span class="nc" id="L402">            assertTokenIs(startPos + 1, new LParenToken());</span>
+<span class="nc" id="L403">            ParseResult&lt;Exp&gt; cond = exp(startPos + 2);</span>
+<span class="nc" id="L404">            assertTokenIs(cond.nextPos(), new RParenToken());</span>
+<span class="nc" id="L405">            ParseResult&lt;Stmt&gt; thenBranch = stmt(cond.nextPos() + 1);</span>
+    
+<span class="nc bnc" id="L407" title="All 2 branches missed.">            if (getToken(thenBranch.nextPos()) instanceof ElseToken) {</span>
+<span class="nc" id="L408">                ParseResult&lt;Stmt&gt; elseBranch = stmt(thenBranch.nextPos() + 1);</span>
+<span class="nc" id="L409">                return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L410">                    new IfStmt(cond.result(), thenBranch.result(), Optional.of(elseBranch.result())),</span>
+<span class="nc" id="L411">                    elseBranch.nextPos()</span>
+                );
+            } else {
+<span class="nc" id="L414">                return new ParseResult&lt;&gt;(</span>
+<span class="nc" id="L415">                    new IfStmt(cond.result(), thenBranch.result(), Optional.empty()),</span>
+<span class="nc" id="L416">                    thenBranch.nextPos()</span>
+                );
+            }
+        }
+    
+        // while (exp) stmt
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        if (t instanceof WhileToken) {</span>
+<span class="nc" id="L423">            assertTokenIs(startPos + 1, new LParenToken());</span>
+<span class="nc" id="L424">            ParseResult&lt;Exp&gt; cond = exp(startPos + 2);</span>
+<span class="nc" id="L425">            assertTokenIs(cond.nextPos(), new RParenToken());</span>
+<span class="nc" id="L426">            ParseResult&lt;Stmt&gt; body = stmt(cond.nextPos() + 1);</span>
+<span class="nc" id="L427">            return new ParseResult&lt;&gt;(new WhileStmt(cond.result(), body.result()), body.nextPos());</span>
+        }
+    
+        // break;
+<span class="nc bnc" id="L431" title="All 2 branches missed.">        if (t instanceof BreakToken) {</span>
+<span class="nc" id="L432">            assertTokenIs(startPos + 1, new SemicolonToken());</span>
+<span class="nc" id="L433">            return new ParseResult&lt;&gt;(new BreakStmt(), startPos + 2);</span>
+        }
+    
+        // println(exp)
+<span class="nc bnc" id="L437" title="All 2 branches missed.">        if (t instanceof PrintlnToken) {</span>
+<span class="nc" id="L438">            assertTokenIs(startPos + 1, new LParenToken());</span>
+<span class="nc" id="L439">            ParseResult&lt;Exp&gt; inner = exp(startPos + 2);</span>
+<span class="nc" id="L440">            assertTokenIs(inner.nextPos(), new RParenToken());</span>
+<span class="nc" id="L441">            return new ParseResult&lt;&gt;(new PrintlnStmt(inner.result()), inner.nextPos() + 1);</span>
+        }
+    
+        // { stmt* }
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if (t instanceof LCurlyToken) {</span>
+<span class="nc" id="L446">            int pos = startPos + 1;</span>
+<span class="nc" id="L447">            List&lt;Stmt&gt; stmts = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L448" title="All 2 branches missed.">            while (!(getToken(pos) instanceof RCurlyToken)) {</span>
+<span class="nc" id="L449">                ParseResult&lt;Stmt&gt; stmtRes = stmt(pos);</span>
+<span class="nc" id="L450">                stmts.add(stmtRes.result());</span>
+<span class="nc" id="L451">                pos = stmtRes.nextPos();</span>
+<span class="nc" id="L452">            }</span>
+<span class="nc" id="L453">            return new ParseResult&lt;&gt;(new BlockStmt(stmts), pos + 1);</span>
+        }
+    
+        // return [exp];
+<span class="nc bnc" id="L457" title="All 2 branches missed.">        if (t instanceof ReturnToken) {</span>
+<span class="nc" id="L458">            Token next = getToken(startPos + 1);</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">            if (next instanceof SemicolonToken) {</span>
+<span class="nc" id="L460">                return new ParseResult&lt;&gt;(new ReturnStmt(Optional.empty()), startPos + 2);</span>
+            } else {
+<span class="nc" id="L462">                ParseResult&lt;Exp&gt; e = exp(startPos + 1);</span>
+<span class="nc" id="L463">                assertTokenIs(e.nextPos(), new SemicolonToken());</span>
+<span class="nc" id="L464">                return new ParseResult&lt;&gt;(new ReturnStmt(Optional.of(e.result())), e.nextPos() + 1);</span>
+            }
+        }
+    
+        // exp;
+<span class="nc" id="L469">        ParseResult&lt;Exp&gt; e = exp(startPos);</span>
+<span class="nc" id="L470">        assertTokenIs(e.nextPos(), new SemicolonToken());</span>
+<span class="nc" id="L471">        return new ParseResult&lt;&gt;(new ExpStmt(e.result()), e.nextPos() + 1);</span>
+    }
+    
+
+
+    // struct_actual_param ::= var `:` exp
+    public ParseResult&lt;StructActualParam&gt; structActualParam(final int startPos) throws ParseException {
+        // Expect a variable (IdentifierToken)
+<span class="nc" id="L479">        Token t = getToken(startPos);</span>
+<span class="nc bnc" id="L480" title="All 2 branches missed.">        if (!(t instanceof IdentifierToken id)) {</span>
+<span class="nc" id="L481">            throw new ParseException(&quot;Expected variable name at position &quot; + startPos);</span>
+        }
+    
+        // Expect a colon
+<span class="nc" id="L485">        assertTokenIs(startPos + 1, new ColonToken());</span>
+    
+        // Parse the expression
+<span class="nc" id="L488">        ParseResult&lt;Exp&gt; e = exp(startPos + 2);</span>
+    
+<span class="nc" id="L490">        return new ParseResult&lt;&gt;(new StructActualParam(id.name(), e.result()), e.nextPos());</span>
+    }
+    
+
+
+
+    // struct_actual_params ::=
+    // [struct_actual_param (`,` struct_actual_param)*]
+    
+
+
+    // primary_exp ::= i | var | Integers and variables
+    //                 `true` | `false` | Booleans
+    //                 `self` | Instance on which we call a method
+    //                 `(` exp `)` | Parenthesized expression
+
+    //                 Creates a new instance of a struct
+    //                 `new` structname `{` struct_actual_params `}`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // exp ::= addExp
     public ParseResult&lt;Exp&gt; exp(final int startPos) throws ParseException {
-<span class="fc" id="L37">        return addExp(startPos);</span>
+<span class="nc" id="L558">        return addExp(startPos);</span>
     }
 
     // addExp ::= multExp ((+ | -) multExp)*
     public ParseResult&lt;Exp&gt; addExp(final int startPos) throws ParseException {
-<span class="fc" id="L42">        ParseResult&lt;Exp&gt; m = multExp(startPos);</span>
-<span class="fc" id="L43">        Exp result = m.result();</span>
-<span class="fc" id="L44">        int pos = m.nextPos();</span>
+<span class="fc" id="L563">        ParseResult&lt;Exp&gt; m = multExp(startPos);</span>
+<span class="fc" id="L564">        Exp result = m.result();</span>
+<span class="fc" id="L565">        int pos = m.nextPos();</span>
 
         while (true) {
             try {
-<span class="fc" id="L48">                Token t = getToken(pos);</span>
+<span class="fc" id="L569">                Token t = getToken(pos);</span>
                 Op op;
 
-<span class="fc bfc" id="L51" title="All 2 branches covered.">                if (t instanceof PlusToken) {</span>
-<span class="fc" id="L52">                    op = new AddOp();</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">                } else if (t instanceof MinusToken) {</span>
-<span class="fc" id="L54">                    op = new SubOp();</span>
+<span class="fc bfc" id="L572" title="All 2 branches covered.">                if (t instanceof PlusToken) {</span>
+<span class="fc" id="L573">                    op = new AddOp();</span>
+<span class="pc bpc" id="L574" title="1 of 2 branches missed.">                } else if (t instanceof MinusToken) {</span>
+<span class="fc" id="L575">                    op = new SubOp();</span>
                 } else {
-<span class="fc" id="L56">                    break;</span>
+<span class="nc" id="L577">                    break;</span>
                 }
 
-<span class="fc" id="L59">                ParseResult&lt;Exp&gt; m2 = multExp(pos + 1);</span>
-<span class="fc" id="L60">                result = new BinOpExp(result, op, m2.result());</span>
-<span class="fc" id="L61">                pos = m2.nextPos();</span>
-<span class="fc" id="L62">            } catch (ParseException e) {</span>
-<span class="fc" id="L63">                break;</span>
-<span class="fc" id="L64">            }</span>
+<span class="fc" id="L580">                ParseResult&lt;Exp&gt; m2 = multExp(pos + 1);</span>
+<span class="fc" id="L581">                result = new BinOpExp(result, op, m2.result());</span>
+<span class="fc" id="L582">                pos = m2.nextPos();</span>
+<span class="fc" id="L583">            } catch (ParseException e) {</span>
+<span class="fc" id="L584">                break;</span>
+<span class="fc" id="L585">            }</span>
         }
 
-<span class="fc" id="L67">        return new ParseResult&lt;&gt;(result, pos);</span>
+<span class="fc" id="L588">        return new ParseResult&lt;&gt;(result, pos);</span>
     }
 
     // multExp ::= primaryExp ((* | /) primaryExp)*
     public ParseResult&lt;Exp&gt; multExp(final int startPos) throws ParseException {
-<span class="fc" id="L72">        ParseResult&lt;Exp&gt; m = primaryExp(startPos);</span>
-<span class="fc" id="L73">        Exp result = m.result();</span>
-<span class="fc" id="L74">        int pos = m.nextPos();</span>
+<span class="fc" id="L593">        ParseResult&lt;Exp&gt; m = primaryExp(startPos);</span>
+<span class="fc" id="L594">        Exp result = m.result();</span>
+<span class="fc" id="L595">        int pos = m.nextPos();</span>
 
         while (true) {
             try {
-<span class="fc" id="L78">                Token t = getToken(pos);</span>
+<span class="fc" id="L599">                Token t = getToken(pos);</span>
                 Op op;
 
-<span class="fc bfc" id="L81" title="All 2 branches covered.">                if (t instanceof StarToken) {</span>
-<span class="fc" id="L82">                    op = new MulOp();</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">                } else if (t instanceof DivToken) {</span>
-<span class="nc" id="L84">                    op = new DivOp();</span>
+<span class="fc bfc" id="L602" title="All 2 branches covered.">                if (t instanceof StarToken) {</span>
+<span class="fc" id="L603">                    op = new MulOp();</span>
+<span class="pc bpc" id="L604" title="1 of 2 branches missed.">                } else if (t instanceof DivToken) {</span>
+<span class="nc" id="L605">                    op = new DivOp();</span>
                 } else {
-<span class="fc" id="L86">                    break;</span>
+<span class="fc" id="L607">                    break;</span>
                 }
 
-<span class="fc" id="L89">                ParseResult&lt;Exp&gt; m2 = primaryExp(pos + 1);</span>
-<span class="fc" id="L90">                result = new BinOpExp(result, op, m2.result());</span>
-<span class="fc" id="L91">                pos = m2.nextPos();</span>
-<span class="fc" id="L92">            } catch (ParseException e) {</span>
-<span class="fc" id="L93">                break;</span>
-<span class="fc" id="L94">            }</span>
+<span class="fc" id="L610">                ParseResult&lt;Exp&gt; m2 = primaryExp(pos + 1);</span>
+<span class="fc" id="L611">                result = new BinOpExp(result, op, m2.result());</span>
+<span class="fc" id="L612">                pos = m2.nextPos();</span>
+<span class="fc" id="L613">            } catch (ParseException e) {</span>
+<span class="fc" id="L614">                break;</span>
+<span class="fc" id="L615">            }</span>
         }
 
-<span class="fc" id="L97">        return new ParseResult&lt;&gt;(result, pos);</span>
+<span class="fc" id="L618">        return new ParseResult&lt;&gt;(result, pos);</span>
     }
 
     // primaryExp ::= IDENTIFIER | INTEGER | `(` exp `)`
     public ParseResult&lt;Exp&gt; primaryExp(final int startPos) throws ParseException {
-<span class="fc" id="L102">        Token t = getToken(startPos);</span>
+<span class="fc" id="L623">        Token t = getToken(startPos);</span>
 
-<span class="pc bpc" id="L104" title="1 of 2 branches missed.">        if (t instanceof IdentifierToken id) {</span>
-<span class="nc" id="L105">            return new ParseResult&lt;&gt;(new VarExp(id.name()), startPos + 1);</span>
-<span class="fc bfc" id="L106" title="All 2 branches covered.">        } else if (t instanceof IntegerLiteralToken i) {</span>
-<span class="fc" id="L107">            return new ParseResult&lt;&gt;(new IntLiteral(i.value()), startPos + 1);</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">        } else if (t instanceof LParenToken) {</span>
-<span class="fc" id="L109">            ParseResult&lt;Exp&gt; inner = exp(startPos + 1);</span>
-<span class="fc" id="L110">            assertTokenIs(inner.nextPos(), new RParenToken());</span>
-<span class="fc" id="L111">            return new ParseResult&lt;&gt;(new ParenExp(inner.result()), inner.nextPos() + 1);</span>
+<span class="pc bpc" id="L625" title="1 of 2 branches missed.">        if (t instanceof IdentifierToken id) {</span>
+<span class="nc" id="L626">            return new ParseResult&lt;&gt;(new VarExp(id.name()), startPos + 1);</span>
+<span class="fc bfc" id="L627" title="All 2 branches covered.">        } else if (t instanceof IntegerLiteralToken i) {</span>
+<span class="fc" id="L628">            return new ParseResult&lt;&gt;(new IntLiteral(i.value()), startPos + 1);</span>
+<span class="pc bpc" id="L629" title="1 of 2 branches missed.">        } else if (t instanceof LParenToken) {</span>
+<span class="nc" id="L630">            ParseResult&lt;Exp&gt; inner = exp(startPos + 1);</span>
+<span class="nc" id="L631">            assertTokenIs(inner.nextPos(), new RParenToken());</span>
+<span class="nc" id="L632">            return new ParseResult&lt;&gt;(new ParenExp(inner.result()), inner.nextPos() + 1);</span>
         } else {
-<span class="fc" id="L113">            throw new ParseException(&quot;Expected primary expression at &quot; + startPos);</span>
+<span class="fc" id="L634">            throw new ParseException(&quot;Expected primary expression at &quot; + startPos);</span>
         }
     }
 
     // stmt ::= IDENTIFIER = exp ; | print exp ; | return [exp] ;
-    public ParseResult&lt;Stmt&gt; stmt(final int startPos) throws ParseException {
-<span class="fc" id="L119">        Token token = getToken(startPos);</span>
+    // public ParseResult&lt;Stmt&gt; stmt(final int startPos) throws ParseException {
+    //     Token token = getToken(startPos);
 
-<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (token instanceof IdentifierToken id) {</span>
-<span class="fc" id="L122">            assertTokenIs(startPos + 1, new EqualsToken());</span>
-<span class="fc" id="L123">            ParseResult&lt;Exp&gt; expr = exp(startPos + 2);</span>
-<span class="fc" id="L124">            assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
-<span class="fc" id="L125">            return new ParseResult&lt;&gt;(new AssignStmt(id.name(), expr.result()), expr.nextPos() + 1);</span>
-<span class="fc bfc" id="L126" title="All 2 branches covered.">        } else if (token instanceof PrintToken) {</span>
-<span class="fc" id="L127">            ParseResult&lt;Exp&gt; expr = exp(startPos + 1);</span>
-<span class="fc" id="L128">            assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
-<span class="fc" id="L129">            return new ParseResult&lt;&gt;(new PrintlnStmt(expr.result()), expr.nextPos() + 1);</span>
-<span class="pc bpc" id="L130" title="1 of 2 branches missed.">        } else if (token instanceof ReturnToken) {</span>
-            try {
-<span class="fc" id="L132">                ParseResult&lt;Exp&gt; expr = exp(startPos + 1);</span>
-<span class="fc" id="L133">                assertTokenIs(expr.nextPos(), new SemicolonToken());</span>
-<span class="fc" id="L134">                return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.of(expr.result())), expr.nextPos() + 1);</span>
-<span class="fc" id="L135">            } catch (ParseException e) {</span>
-<span class="fc" id="L136">                assertTokenIs(startPos + 1, new SemicolonToken());</span>
-<span class="fc" id="L137">                return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.empty()), startPos + 2);</span>
-            }
-        } else {
-<span class="nc" id="L140">            throw new ParseException(&quot;Expected statement at &quot; + startPos);</span>
-        }
-    }
+    //     if (token instanceof IdentifierToken id) {
+    //         assertTokenIs(startPos + 1, new EqualsToken());
+    //         ParseResult&lt;Exp&gt; expr = exp(startPos + 2);
+    //         assertTokenIs(expr.nextPos(), new SemicolonToken());
+    //         return new ParseResult&lt;&gt;(new AssignStmt(id.name(), expr.result()), expr.nextPos() + 1);
+    //     } else if (token instanceof PrintToken) {
+    //         ParseResult&lt;Exp&gt; expr = exp(startPos + 1);
+    //         assertTokenIs(expr.nextPos(), new SemicolonToken());
+    //         return new ParseResult&lt;&gt;(new PrintlnStmt(expr.result()), expr.nextPos() + 1);
+    //     } else if (token instanceof ReturnToken) {
+    //         try {
+    //             ParseResult&lt;Exp&gt; expr = exp(startPos + 1);
+    //             assertTokenIs(expr.nextPos(), new SemicolonToken());
+    //             return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.of(expr.result())), expr.nextPos() + 1);
+    //         } catch (ParseException e) {
+    //             assertTokenIs(startPos + 1, new SemicolonToken());
+    //             return new ParseResult&lt;Stmt&gt;(new ReturnStmt(Optional.empty()), startPos + 2);
+    //         }
+    //     } else {
+    //         throw new ParseException(&quot;Expected statement at &quot; + startPos);
+    //     }
+    // }
 
     // program ::= stmt*
     public ParseResult&lt;Program&gt; program(final int startPos) {
-<span class="fc" id="L146">        List&lt;Stmt&gt; stmts = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L147">        int pos = startPos;</span>
+<span class="nc" id="L667">        List&lt;Stmt&gt; stmts = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L668">        int pos = startPos;</span>
 
-<span class="fc bfc" id="L149" title="All 2 branches covered.">        while (pos &lt; tokens.length) {</span>
+<span class="nc bnc" id="L670" title="All 2 branches missed.">        while (pos &lt; tokens.length) {</span>
             try {
-<span class="fc" id="L151">                ParseResult&lt;Stmt&gt; res = stmt(pos);</span>
-<span class="fc" id="L152">                stmts.add(res.result());</span>
-<span class="fc" id="L153">                pos = res.nextPos();</span>
-<span class="nc" id="L154">            } catch (ParseException e) {</span>
-<span class="nc" id="L155">                break;</span>
-<span class="fc" id="L156">            }</span>
+<span class="nc" id="L672">                ParseResult&lt;Stmt&gt; res = stmt(pos);</span>
+<span class="nc" id="L673">                stmts.add(res.result());</span>
+<span class="nc" id="L674">                pos = res.nextPos();</span>
+<span class="nc" id="L675">            } catch (ParseException e) {</span>
+<span class="nc" id="L676">                break;</span>
+<span class="nc" id="L677">            }</span>
         }
 
-<span class="fc" id="L159">        return new ParseResult&lt;Program&gt;(new Program(stmts), pos);</span>
+<span class="nc" id="L680">        return new ParseResult&lt;Program&gt;(new Program(stmts), pos);</span>
     }
 
     // Top-level entry point
     public Program parseWholeProgram() throws ParseException {
-<span class="fc" id="L164">        ParseResult&lt;Program&gt; result = program(0);</span>
+<span class="nc" id="L685">        ParseResult&lt;Program&gt; result = program(0);</span>
 
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">        if (result.nextPos() == tokens.length) {</span>
-<span class="fc" id="L167">            return result.result();</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (result.nextPos() == tokens.length) {</span>
+<span class="nc" id="L688">            return result.result();</span>
         } else {
-<span class="nc" id="L169">            throw new ParseException(&quot;Extra tokens after program at position &quot; + result.nextPos());</span>
+<span class="nc" id="L690">            throw new ParseException(&quot;Extra tokens after program at position &quot; + result.nextPos());</span>
         }
     }
 }

@@ -38,6 +38,7 @@ typechecker\IntType.class
 tokenizer\FalseToken.class
 tokenizer\SlashToken.class
 tokenizer\RArrowToken.class
+typechecker\FieldAccessExpr.class
 tokenizer\VoidToken.class
 tokenizer\StructToken.class
 typechecker\StructType.class

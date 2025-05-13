@@ -24,6 +24,16 @@ class MethodDef {
     }
 }
 
+class FieldAccessExpr implements Expression {
+    public final Expression receiver;
+    public final String field;
+
+    public FieldAccessExpr(Expression receiver, String field) {
+        this.receiver = receiver;
+        this.field = field;
+    }
+}
+
 class MethodCallExpr implements Expression {
     Expression receiver;
     String methodName;
@@ -38,10 +48,10 @@ class MethodCallExpr implements Expression {
 
 
 class CallExpr implements Expression {
-    Expression callee;
+    VariableExpr callee;
     List<Expression> arguments;
 
-    CallExpr(Expression callee, List<Expression> arguments) {
+    CallExpr(VariableExpr callee, List<Expression> arguments) {
         this.callee = callee;
         this.arguments = arguments;
     }
@@ -51,6 +61,23 @@ class CallExpr implements Expression {
 class StructType implements Type {
     String name;
     StructType(String name) { this.name = name; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof StructType)) return false;
+        StructType other = (StructType) obj;
+        return this.name.equals(other.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "StructType(" + name + ")";
+    }
 }
 
 class FunctionType implements Type {
@@ -202,6 +229,10 @@ public class TypeChecker {
     // Store ImplDefs by trait name
     public Map<String, ImplDef> implDefs = new HashMap<>();
 
+    private final Map<Type, Map<String, FunctionType>> methodsForType = new HashMap<>();
+
+    private final Map<Type, List<ImplDef>> implsForType = new HashMap<>();
+
     
     TypeEnvironment env = new TypeEnvironment();
 
@@ -236,6 +267,11 @@ public class TypeChecker {
             }
         }
         env.impls.computeIfAbsent(impl.traitName, k -> new ArrayList<>()).add(impl);
+
+        implsForType.computeIfAbsent(impl.forType, k -> new ArrayList<>()).add(impl);
+
+        // populate the methodsForType mapping
+        methodsForType.computeIfAbsent(impl.forType, k -> new HashMap<>()).putAll(impl.methods);
     }
 
     public void checkFunction(FunctionDef func) {
@@ -348,63 +384,141 @@ public class TypeChecker {
             }
             return funcType.returnType;
         }
+        // Case 2: Struct method treated like a funtion (rare, but structurally demanded)
+        Map<String, FunctionType> methods = methodsForType.get(calleeType);
+        if (methods != null) {
+            // assumption here is call.callee is a VariableExpr
+            FunctionType methodType = methods.get(call.callee.toString());
+            if (methodType != null) {
+                if (call.arguments.size() != methodType.paramTypes.size()) {
+                    throw new RuntimeException("Argument count mismatch in method-like call to " + call.callee);
+                }
 
-        // Handle method call for struct implementations
-        if (calleeType instanceof StructType) {
-            StructType structType = (StructType) calleeType;
-            List<ImplDef> implsForStruct = env.impls.getOrDefault(structType.name, new ArrayList<>());
-
-            for (List<ImplDef> implList : env.impls.values()) {
-                for (ImplDef impl : implList) {
-                    if (impl.forType instanceof StructType) {
-                        StructType implType = (StructType) impl.forType;
-                        if (implType.name.equals(structType.name)) {
-                            implsForStruct.add(impl);
-                        }
+                for (int i = 0; i < call.arguments.size(); i++) {
+                    Type argType = checkExpression(call.arguments.get(i), localEnv);
+                    Type expectedType = methodType.paramTypes.get(i);
+                    if (!argType.getClass().equals(expectedType.getClass())) {
+                        throw new RuntimeException("Argument type mismatch at position " + i + " in method-like call to " + call.callee);
                     }
                 }
+
+                return methodType.returnType;
             }
-            throw new RuntimeException("Method " + call.callee + " not found for struct " + structType.name);
         }
+
+//// Refactored on 05/07/2025
+        ///// Handle method call for struct implementations
+        ///if (calleeType instanceof StructType) {
+        ///    StructType structType = (StructType) calleeType;
+        ///    List<ImplDef> implsForStruct = env.impls.getOrDefault(structType.name, new ArrayList<>());
+///
+        ///    for (List<ImplDef> implList : env.impls.values()) {
+        ///        for (ImplDef impl : implList) {
+        ///            if (impl.forType instanceof StructType) {
+        ///                StructType implType = (StructType) impl.forType;
+        ///                if (implType.name.equals(structType.name)) {
+        ///                    implsForStruct.add(impl);
+        ///                }
+        ///            }
+        ///        }
+        ///    }
+        ///    throw new RuntimeException("Method " + call.callee + " not found for struct " + structType.name);
+        ///}
 
         throw new RuntimeException("Trying to call a non-function or non-method");
     } else if (expr instanceof MethodCallExpr) {
         MethodCallExpr mcall = (MethodCallExpr) expr;
+    
+        // First, check the type of the receiver
         Type receiverType = checkExpression(mcall.receiver, localEnv);
     
+        // Ensure the receiver is a StructType before proceeding
         if (!(receiverType instanceof StructType)) {
             throw new RuntimeException("Method call on non-struct type");
         }
     
+        // Cast to StructType after confirming it is a StructType
         StructType structType = (StructType) receiverType;
     
-        for (List<ImplDef> implList : env.impls.values()) {
-            for (ImplDef impl : implList) {
-                if (!(impl.forType instanceof StructType)) continue;
-                StructType forStruct = (StructType) impl.forType;
-                if (!forStruct.name.equals(structType.name)) continue;
+        // Try direct method map lookup
+        Map<String, FunctionType> methods = methodsForType.get(receiverType);
+        if (methods != null && methods.containsKey(mcall.methodName)) {
+            FunctionType methodType = methods.get(mcall.methodName);
     
-                FunctionType methodType = impl.methods.get(mcall.methodName);
-                if (methodType == null) continue;
+            // Check if the number of arguments matches
+            if (mcall.arguments.size() != methodType.paramTypes.size()) {
+                throw new RuntimeException("Argument count mismatch in method call to " + mcall.methodName);
+            }
     
-                if (mcall.arguments.size() != methodType.paramTypes.size()) {
-                    throw new RuntimeException("Argument count mismatch in method call");
+            // Check argument types match
+            for (int i = 0; i < mcall.arguments.size(); i++) {
+                Type argType = checkExpression(mcall.arguments.get(i), localEnv);
+                Type expectedType = methodType.paramTypes.get(i);
+                if (!argType.getClass().equals(expectedType.getClass())) {
+                    throw new RuntimeException("Argument type mismatch at position " + i + " in method call to " + mcall.methodName);
                 }
+            }
     
-                for (int i = 0; i < mcall.arguments.size(); i++) {
-                    Type argType = checkExpression(mcall.arguments.get(i), localEnv);
-                    Type expectedType = methodType.paramTypes.get(i);
-                    if (!argType.getClass().equals(expectedType.getClass())) {
-                        throw new RuntimeException("Argument type mismatch at position " + i);
+            // Return the return type of the method if everything is valid
+            return methodType.returnType;
+        }
+    
+        // Fall back to checking impls
+        List<ImplDef> impls = env.impls.get(receiverType);
+        if (impls != null) {
+            for (ImplDef impl : impls) {
+                // Instead of a List, methods are a Map<String, FunctionType>
+                Map<String, FunctionType> methodMap = impl.methods;
+    
+                if (methodMap != null && methodMap.containsKey(mcall.methodName)) {
+                    FunctionType functionType = methodMap.get(mcall.methodName);
+    
+                    // Check if the number of arguments matches
+                    if (mcall.arguments.size() != functionType.paramTypes.size()) {
+                        throw new RuntimeException("Argument count mismatch in method call to " + mcall.methodName);
                     }
-                }
     
-                return methodType.returnType;
+                    // Check argument types match
+                    for (int k = 0; k < mcall.arguments.size(); k++) {
+                        Type argType = checkExpression(mcall.arguments.get(k), localEnv);
+                        Type expectedType = functionType.paramTypes.get(k);
+                        if (!argType.getClass().equals(expectedType.getClass())) {
+                            throw new RuntimeException("Argument type mismatch at position " + k + " in method call to " + mcall.methodName);
+                        }
+                    }
+    
+                    // Return the return type of the method if everything is valid
+                    return functionType.returnType;
+                }
             }
         }
     
+        // If no matching method found, throw an exception
         throw new RuntimeException("Method " + mcall.methodName + " not found for struct " + structType.name);
+    } else if (expr instanceof FieldAccessExpr f) {
+        Type receiverType = checkExpression(f.receiver, localEnv);
+    
+        if (!(receiverType instanceof StructType)) {
+            throw new RuntimeException("Field access on non-struct type: " + receiverType);
+        }
+    
+        StructType st = (StructType) receiverType;
+        StructDef def = env.structs.get(st.name);
+    
+        if (def == null) {
+            throw new RuntimeException("Unknown struct type: " + st.name);
+        }
+    
+        Type fieldType = def.fields.get(f.field);
+        if (fieldType == null) {
+            throw new RuntimeException("Field '" + f.field + "' not found in struct " + st.name);
+        }
+    
+        return fieldType;
     }
+
+
+
 
 
         throw new RuntimeException("Unsupported expression");

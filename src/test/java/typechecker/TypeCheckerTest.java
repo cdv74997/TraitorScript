@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.util.Collections;
 
 
@@ -308,6 +309,91 @@ public class TypeCheckerTest {
         });
         assertTrue(thrown.getMessage().contains("Operands must be Int"), "Error message should indicate operand type mismatch");
     }
+
+    @Test
+    public void testSelfReferenceInTrait() {
+        TypeChecker checker = new TypeChecker();
+    
+        // trait Addable { method add(other: Self): Self }
+        Map<String, FunctionType> traitMethods = new HashMap<>();
+        traitMethods.put("add", new FunctionType(
+            List.of(new StructType("MyInt")),  // Self resolved to MyInt
+            new StructType("MyInt")
+        ));
+        TraitDef trait = new TraitDef("Addable", traitMethods);
+        checker.checkTrait(trait);
+    
+        // struct MyInt { value: Int }
+        Map<String, Type> fields = new HashMap<>();
+        fields.put("value", new IntType());
+        StructDef struct = new StructDef("MyInt", fields);
+        checker.checkStruct(struct);
+    
+        // impl Addable for MyInt { method add(other: MyInt): MyInt { return new MyInt { value: self.value + other.value } } }
+        Map<String, FunctionType> implMethods = new HashMap<>();
+        implMethods.put("add", new FunctionType(
+            List.of(new StructType("MyInt")),
+            new StructType("MyInt")
+        ));
+        ImplDef impl = new ImplDef("Addable", new StructType("MyInt"), implMethods);
+    
+        // This shouldn't throw
+        assertDoesNotThrow(() -> checker.checkImpl(impl));
+    }
+
+    @Test
+    public void testMethodCallWithStructArgument() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Define a trait with a method that takes a struct as argument
+        Map<String, FunctionType> methods = new HashMap<>();
+        methods.put("process", new FunctionType(
+            List.of(new StructType("Data")),
+            new IntType()
+        ));
+        TraitDef trait = new TraitDef("Processor", methods);
+        checker.checkTrait(trait);
+    
+        // Define the struct
+        Map<String, Type> fields = new HashMap<>();
+        fields.put("val", new IntType());
+        StructDef struct = new StructDef("Data", fields);
+        checker.checkStruct(struct);
+    
+        // Implement the trait for the struct
+        Map<String, FunctionType> implMethods = new HashMap<>();
+        implMethods.put("process", new FunctionType(
+            List.of(new StructType("Data")),
+            new IntType()
+        ));
+        ImplDef impl = new ImplDef("Processor", new StructType("Data"), implMethods);
+        checker.checkImpl(impl);
+    
+        // Make a variable in the environment of type Processor
+        Map<String, Type> env = new HashMap<>();
+        env.put("p", new StructType("Data")); // p is the receiver of the method
+    
+        // Create an argument: new Data { val: 123 }
+        Map<String, Expression> argFields = new HashMap<>();
+        argFields.put("val", new IntLiteralExpr(123));
+        StructInstantiationExpr arg = new StructInstantiationExpr("Data", argFields);
+    
+        // Method call: p.process(new Data { val: 123 })
+        MethodCallExpr call = new MethodCallExpr(
+            new VariableExpr("p"),
+            "process",
+            List.of(arg)
+        );
+    
+        // Type check
+        Type result = checker.checkExpression(call, env);
+    
+        assertTrue(result instanceof IntType, "Expected IntType as result of method call");
+    }
+
+
+
+
 
 
 

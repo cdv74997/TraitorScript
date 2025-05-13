@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="typechecker.TypeCheckerTest" time="0.046" tests="14" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="typechecker.TypeCheckerTest" time="0.076" tests="18" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="20"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -15,7 +15,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-20\bin"/>
-    <property name="sun.java.command" value="C:\Users\John\AppData\Local\Temp\surefire14623906973737082474\surefirebooter13870029863528425594.jar C:\Users\John\AppData\Local\Temp\surefire14623906973737082474 2025-05-13T00-24-49_405-jvmRun1 surefire14668052710125147763tmp surefire_01919406607696447866tmp"/>
+    <property name="sun.java.command" value="C:\Users\John\AppData\Local\Temp\surefire18196981642762441301\surefirebooter11468939893900335183.jar C:\Users\John\AppData\Local\Temp\surefire18196981642762441301 2025-05-13T00-43-19_204-jvmRun1 surefire8054899589881797276tmp surefire_05463240918043198507tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="C:\Users\John\TraitorScript\target\test-classes;C:\Users\John\TraitorScript\target\classes;C:\Users\John\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.7.0\junit-jupiter-api-5.7.0.jar;C:\Users\John\.m2\repository\org\apiguardian\apiguardian-api\1.1.0\apiguardian-api-1.1.0.jar;C:\Users\John\.m2\repository\org\opentest4j\opentest4j\1.2.0\opentest4j-1.2.0.jar;C:\Users\John\.m2\repository\org\junit\platform\junit-platform-commons\1.7.0\junit-platform-commons-1.7.0.jar;C:\Users\John\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.7.0\junit-jupiter-engine-5.7.0.jar;C:\Users\John\.m2\repository\org\junit\platform\junit-platform-engine\1.7.0\junit-platform-engine-1.7.0.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -30,7 +30,7 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="surefire.real.class.path" value="C:\Users\John\AppData\Local\Temp\surefire14623906973737082474\surefirebooter13870029863528425594.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\John\AppData\Local\Temp\surefire18196981642762441301\surefirebooter11468939893900335183.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="20.0.2+9-78"/>
@@ -58,18 +58,22 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="64.0"/>
   </properties>
-  <testcase name="testTraitMethodTypeResolution" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testTraitMethodReference" classname="typechecker.TypeCheckerTest" time="0.016"/>
+  <testcase name="testTraitMethodTypeResolution" classname="typechecker.TypeCheckerTest" time="0.026"/>
+  <testcase name="testTraitMethodReference" classname="typechecker.TypeCheckerTest" time="0.006"/>
   <testcase name="testTraitImplementationForStruct" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testUndefinedMethodInTrait" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testIntegerLiteralType" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testArithmeticExpressionType" classname="typechecker.TypeCheckerTest" time="0.003"/>
-  <testcase name="testMethodOverloadingResolution" classname="typechecker.TypeCheckerTest" time="0.002"/>
+  <testcase name="testUndefinedMethodInTrait" classname="typechecker.TypeCheckerTest" time="0.016"/>
+  <testcase name="testIntegerLiteralType" classname="typechecker.TypeCheckerTest" time="0.001"/>
+  <testcase name="testArithmeticExpressionType" classname="typechecker.TypeCheckerTest" time="0.004"/>
+  <testcase name="testMethodOverloadingResolution" classname="typechecker.TypeCheckerTest" time="0.005"/>
   <testcase name="testMethodCallWithStructArgument" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testSelfReferenceInTrait" classname="typechecker.TypeCheckerTest" time="0.003"/>
+  <testcase name="testSelfReferenceInTrait" classname="typechecker.TypeCheckerTest" time="0"/>
+  <testcase name="testNestedStructInstantiation" classname="typechecker.TypeCheckerTest" time="0"/>
   <testcase name="testStructMissingFieldsFails" classname="typechecker.TypeCheckerTest" time="0"/>
+  <testcase name="testLogicalBooleanExpression" classname="typechecker.TypeCheckerTest" time="0.001"/>
+  <testcase name="testMethodOverloading" classname="typechecker.TypeCheckerTest" time="0"/>
   <testcase name="testTraitMethodCallOnStructInstance" classname="typechecker.TypeCheckerTest" time="0"/>
-  <testcase name="testBooleanLiteralType" classname="typechecker.TypeCheckerTest" time="0.005"/>
-  <testcase name="testUndefinedStructReference" classname="typechecker.TypeCheckerTest" time="0.001"/>
+  <testcase name="testBooleanLiteralType" classname="typechecker.TypeCheckerTest" time="0"/>
+  <testcase name="testUndefinedStructReference" classname="typechecker.TypeCheckerTest" time="0"/>
+  <testcase name="testTraitWithMultipleMethods" classname="typechecker.TypeCheckerTest" time="0.007"/>
   <testcase name="testStructInstantiationWithCorrectFields" classname="typechecker.TypeCheckerTest" time="0"/>
 </testsuite>

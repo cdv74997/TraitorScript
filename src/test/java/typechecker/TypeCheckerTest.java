@@ -507,6 +507,100 @@ public class TypeCheckerTest {
         Expression call1 = new MethodCallExpr(new VariableExpr("f"), "print", List.of(new IntLiteralExpr(123)));
         assertTrue(checker.checkExpression(call1, localEnv) instanceof VoidType);
     }
+    @Test
+    public void testMethodOverloading() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Trait with two "print" methods: one with no args, one with Int arg
+        Map<String, FunctionType> traitMethods = new HashMap<>();
+        traitMethods.put("print", new FunctionType(List.of(), new VoidType()));
+        traitMethods.put("print(Int)", new FunctionType(List.of(new IntType()), new VoidType()));
+        TraitDef printable = new TraitDef("Printable", traitMethods);
+        checker.checkTrait(printable);
+    
+        // Struct
+        StructDef doc = new StructDef("Doc", Map.of());
+        checker.checkStruct(doc);
+    
+        // Impl with both overloads
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        implMethods.put("print", List.of(new FunctionType(List.of(), new VoidType())));
+        implMethods.put("print(Int)", List.of(new FunctionType(List.of(new IntType()), new VoidType())));
+        checker.checkImpl(new ImplDef("Printable", new StructType("Doc"), implMethods));
+    
+        Map<String, Type> env = new HashMap<>();
+        env.put("d", new StructType("Doc"));
+    
+        // Test both overloads
+        Type result1 = checker.checkExpression(new MethodCallExpr(new VariableExpr("d"), "print", List.of()), env);
+        Type result2 = checker.checkExpression(new MethodCallExpr(new VariableExpr("d"), "print(Int)", List.of(new IntLiteralExpr(5))), env);
+    
+        assertTrue(result1 instanceof VoidType);
+        assertTrue(result2 instanceof VoidType);
+    }
+
+    @Test
+    public void testTraitWithMultipleMethods() {
+        TypeChecker checker = new TypeChecker();
+    
+        TraitDef storage = new TraitDef("Storage", new HashMap<>());
+        storage.methods.put("put", new FunctionType(List.of(new IntType(), new IntType()), new VoidType()));
+        storage.methods.put("get", new FunctionType(List.of(new IntType()), new IntType()));
+        checker.checkTrait(storage);
+    
+        StructDef memory = new StructDef("Memory", Map.of());
+        checker.checkStruct(memory);
+    
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        implMethods.put("put", List.of(new FunctionType(List.of(new IntType(), new IntType()), new VoidType())));
+        implMethods.put("get", List.of(new FunctionType(List.of(new IntType()), new IntType())));
+        checker.checkImpl(new ImplDef("Storage", new StructType("Memory"), implMethods));
+    }
+
+    @Test
+    public void testNestedStructInstantiation() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Define Point struct
+        StructDef pointDef = new StructDef("Point", Map.of("x", new IntType(), "y", new IntType()));
+        checker.checkStruct(pointDef);
+    
+        // Define Box that holds a Point
+        StructDef boxDef = new StructDef("Box", Map.of("corner", new StructType("Point")));
+        checker.checkStruct(boxDef);
+    
+        // Create Box { corner: Point { x: 0, y: 0 } }
+        StructInstantiationExpr pointExpr = new StructInstantiationExpr("Point", Map.of(
+            "x", new IntLiteralExpr(0),
+            "y", new IntLiteralExpr(0)
+        ));
+        StructInstantiationExpr boxExpr = new StructInstantiationExpr("Box", Map.of(
+            "corner", pointExpr
+        ));
+    
+        Type result = checker.checkExpression(boxExpr, Map.of());
+        assertTrue(result instanceof StructType);
+        assertEquals("Box", ((StructType) result).name);
+    }
+
+    @Test
+    public void testLogicalBooleanExpression() {
+        TypeChecker checker = new TypeChecker();
+        Map<String, Type> env = Map.of(
+            "a", new BooleanType(),
+            "b", new BooleanType()
+        );
+    
+        BinaryExpr andExpr = new BinaryExpr("&&", new VariableExpr("a"), new VariableExpr("b"));
+        BinaryExpr orExpr = new BinaryExpr("||", new VariableExpr("a"), new VariableExpr("b"));
+    
+        assertTrue(checker.checkExpression(andExpr, env) instanceof BooleanType);
+        assertTrue(checker.checkExpression(orExpr, env) instanceof BooleanType);
+    }
+
+
+
+
 
 
 

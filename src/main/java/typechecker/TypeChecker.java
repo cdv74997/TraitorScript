@@ -340,10 +340,21 @@ public class TypeChecker {
             BinaryExpr bin = (BinaryExpr) expr;
             Type left = checkExpression(bin.left, localEnv);
             Type right = checkExpression(bin.right, localEnv);
-            if (!(left instanceof IntType && right instanceof IntType)) {
+        
+            // Handle logical operations (&&, ||)
+            if (bin.op.equals("&&") || bin.op.equals("||")) {
+                if (!(left instanceof BooleanType) || !(right instanceof BooleanType)) {
+                    throw new RuntimeException("Operands must be Boolean for logical operations");
+                }
+                return new BooleanType(); // Return Boolean type for logical operations
+            }
+        
+            // Handle arithmetic operations (+, -, *, etc.)
+            if (!(left instanceof IntType) || !(right instanceof IntType)) {
                 throw new RuntimeException("Operands must be Int");
             }
-            return new IntType();
+            return new IntType(); // Return Int type for arithmetic operations
+        
         } else if (expr instanceof BooleanLiteralExpr) {
             return new BooleanType();
         } else if (expr instanceof StructInstantiationExpr) {

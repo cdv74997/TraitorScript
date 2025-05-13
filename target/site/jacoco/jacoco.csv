@@ -4,7 +4,7 @@ TraitorScript,typechecker,FunctionDef,15,0,0,0,6,0,1,0,1,0
 TraitorScript,typechecker,BinaryExpr,0,12,0,0,0,5,0,1,0,1
 TraitorScript,typechecker,ImplDef,0,12,0,0,0,5,0,1,0,1
 TraitorScript,typechecker,TraitDef,0,9,0,0,0,4,0,1,0,1
-TraitorScript,typechecker,TypeChecker,582,414,88,44,112,77,54,24,3,9
+TraitorScript,typechecker,TypeChecker,587,434,90,50,113,80,56,26,3,9
 TraitorScript,typechecker,ReturnStatement,6,0,0,0,3,0,1,0,1,0
 TraitorScript,typechecker,StructDef,0,9,0,0,0,4,0,1,0,1
 TraitorScript,typechecker,VoidType,0,3,0,0,0,1,0,1,0,1

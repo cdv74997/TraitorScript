@@ -440,6 +440,77 @@ public class TypeCheckerTest {
         assertTrue(result instanceof IntType, "Expected IntType as result of method call");
     }
 
+    @Test
+    public void testUndefinedStructReference() {
+        TypeChecker checker = new TypeChecker();
+        Map<String, Type> localEnv = new HashMap<>();
+    
+        // Referencing an undefined struct "NonExistentStruct"
+        StructInstantiationExpr expr = new StructInstantiationExpr("NonExistentStruct", new HashMap<>());
+        assertThrows(RuntimeException.class, () -> {
+            checker.checkExpression(expr, localEnv);
+        });
+    }
+
+    @Test
+    public void testUndefinedMethodInTrait() {
+        TypeChecker checker = new TypeChecker();
+        
+        // Define a trait with a "doSomething" method
+        Map<String, FunctionType> traitMethods = new HashMap<>();
+        traitMethods.put("doSomething", new FunctionType(List.of(), new VoidType()));
+        TraitDef trait = new TraitDef("Printable", traitMethods);
+        checker.checkTrait(trait);
+        
+        // Define a struct without implementing the "doSomething" method
+        Map<String, Type> structFields = new HashMap<>();
+        structFields.put("value", new IntType());
+        StructDef struct = new StructDef("Box", structFields);
+        checker.checkStruct(struct);
+        
+        // Attempt to call "doSomething" on an instance of "Box"
+        StructInstantiationExpr structExpr = new StructInstantiationExpr("Box", new HashMap<>());
+        MethodCallExpr callExpr = new MethodCallExpr(structExpr, "doSomething", new ArrayList<>());
+        
+        assertThrows(RuntimeException.class, () -> {
+            checker.checkExpression(callExpr, new HashMap<>());
+        });
+    }
+
+    @Test
+    public void testMethodOverloadingResolution() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Define struct Foo
+        StructDef fooStruct = new StructDef("Foo", Map.of("x", new IntType()));
+        checker.checkStruct(fooStruct);
+    
+        // Define trait Show with method 'print'
+        TraitDef showTrait = new TraitDef("Show", Map.of("print", new FunctionType(List.of(), new VoidType())));
+        checker.checkTrait(showTrait);
+    
+        // Implement Show for Foo with overloaded methods
+        FunctionType print0 = new FunctionType(List.of(), new VoidType());
+        FunctionType print1 = new FunctionType(List.of(new IntType()), new VoidType());
+        ImplDef showImpl = new ImplDef("Show", new StructType("Foo"), Map.of("print", List.of(print0, print1)));
+        checker.checkImpl(showImpl);
+    
+        // let f = Foo { x: 1 };
+        Map<String, Type> localEnv = new HashMap<>();
+        localEnv.put("f", new StructType("Foo"));
+    
+        // f.print();
+        Expression call0 = new MethodCallExpr(new VariableExpr("f"), "print", List.of());
+        assertTrue(checker.checkExpression(call0, localEnv) instanceof VoidType);
+    
+        // f.print(123);
+        Expression call1 = new MethodCallExpr(new VariableExpr("f"), "print", List.of(new IntLiteralExpr(123)));
+        assertTrue(checker.checkExpression(call1, localEnv) instanceof VoidType);
+    }
+
+
+
+
 
 
 

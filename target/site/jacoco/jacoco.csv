@@ -4,7 +4,7 @@ TraitorScript,typechecker,FunctionDef,15,0,0,0,6,0,1,0,1,0
 TraitorScript,typechecker,BinaryExpr,0,12,0,0,0,5,0,1,0,1
 TraitorScript,typechecker,ImplDef,0,12,0,0,0,5,0,1,0,1
 TraitorScript,typechecker,TraitDef,0,9,0,0,0,4,0,1,0,1
-TraitorScript,typechecker,TypeChecker,496,361,68,38,86,67,44,20,3,8
+TraitorScript,typechecker,TypeChecker,590,406,90,42,114,75,56,22,3,9
 TraitorScript,typechecker,ReturnStatement,6,0,0,0,3,0,1,0,1,0
 TraitorScript,typechecker,StructDef,0,9,0,0,0,4,0,1,0,1
 TraitorScript,typechecker,VoidType,0,3,0,0,0,1,0,1,0,1
@@ -19,6 +19,7 @@ TraitorScript,typechecker,FunctionType,0,9,0,0,0,4,0,1,0,1
 TraitorScript,typechecker,CallExpr,9,0,0,0,4,0,1,0,1,0
 TraitorScript,typechecker,LetStatement,9,0,0,0,4,0,1,0,1,0
 TraitorScript,typechecker,TypeEnvironment,0,23,0,0,0,5,0,1,0,1
+TraitorScript,typechecker,FieldAccessExpr,9,0,0,0,4,0,1,0,1,0
 TraitorScript,typechecker,AssignStatement,9,0,0,0,4,0,1,0,1,0
 TraitorScript,typechecker,IntType,0,6,0,0,0,2,0,2,0,2
 TraitorScript,typechecker,VariableExpr,0,6,0,0,0,1,0,1,0,1

@@ -123,9 +123,11 @@ class TraitDef {
 class ImplDef {
     String traitName;
     Type forType;
-    Map<String, FunctionType> methods;
+    Map<String, List<FunctionType>> methods;
 
-    ImplDef(String traitName, Type forType, Map<String, FunctionType> methods) {
+    //Map<String, FunctionType> methods;
+
+    ImplDef(String traitName, Type forType, Map<String, List<FunctionType>> methods) {
         this.traitName = traitName;
         this.forType = forType;
         this.methods = methods;
@@ -229,7 +231,11 @@ public class TypeChecker {
     // Store ImplDefs by trait name
     public Map<String, ImplDef> implDefs = new HashMap<>();
 
-    private final Map<Type, Map<String, FunctionType>> methodsForType = new HashMap<>();
+    //private final Map<Type, Map<String, FunctionType>> methodsForType = new HashMap<>();
+    //private final Map<String, List<FunctionType>> methodsForType = new HashMap<>();
+    private final Map<Type, Map<String, List<FunctionType>>> methodsForType = new HashMap<>();
+
+
 
     private final Map<Type, List<ImplDef>> implsForType = new HashMap<>();
 
@@ -240,16 +246,21 @@ public class TypeChecker {
         env.structs.put(struct.name, struct);
     }
 
+    
     public FunctionType getTraitMethodType(String traitName, String methodName, Type receiverType) {
         List<ImplDef> impls = env.impls.get(traitName);
         if (impls == null) return null;
         for (ImplDef impl : impls) {
             if (impl.forType.equals(receiverType)) {
-                return impl.methods.get(methodName);
+                List<FunctionType> overloads = impl.methods.get(methodName);
+                if (overloads != null && !overloads.isEmpty()) {
+                    return overloads.get(0); // or apply overload resolution here
+                }
             }
         }
         return null;
     }
+
 
 
     public void checkTrait(TraitDef trait) {
@@ -266,13 +277,22 @@ public class TypeChecker {
                 throw new RuntimeException("Method " + method + " not implemented for trait " + impl.traitName);
             }
         }
+    
         env.impls.computeIfAbsent(impl.traitName, k -> new ArrayList<>()).add(impl);
-
+    
         implsForType.computeIfAbsent(impl.forType, k -> new ArrayList<>()).add(impl);
-
-        // populate the methodsForType mapping
-        methodsForType.computeIfAbsent(impl.forType, k -> new HashMap<>()).putAll(impl.methods);
+    
+        // Populate the methodsForType mapping for overloading
+        for (Map.Entry<String, List<FunctionType>> entry : impl.methods.entrySet()) {
+            String methodName = entry.getKey();
+            List<FunctionType> overloads = entry.getValue();
+    
+            // Ensure that overloads for the same method name are added to the list
+            Map<String, List<FunctionType>> methodMap = methodsForType.computeIfAbsent(impl.forType, k -> new HashMap<>());
+            methodMap.computeIfAbsent(methodName, k -> new ArrayList<>()).addAll(overloads);
+        }
     }
+
 
     public void checkFunction(FunctionDef func) {
         Map<String, Type> localEnv = new HashMap<>();
@@ -385,116 +405,119 @@ public class TypeChecker {
             return funcType.returnType;
         }
         // Case 2: Struct method treated like a funtion (rare, but structurally demanded)
-        Map<String, FunctionType> methods = methodsForType.get(calleeType);
-        if (methods != null) {
-            // assumption here is call.callee is a VariableExpr
-            FunctionType methodType = methods.get(call.callee.toString());
-            if (methodType != null) {
+        Map<String, List<FunctionType>> methods = methodsForType.get(calleeType);
+        if (methods != null && methods.containsKey(call.callee.toString())) {
+            List<FunctionType> overloads = methods.get(call.callee.toString());
+        
+            for (FunctionType methodType : overloads) {
+                // Check argument count
                 if (call.arguments.size() != methodType.paramTypes.size()) {
-                    throw new RuntimeException("Argument count mismatch in method-like call to " + call.callee);
+                    continue;
                 }
-
+        
+                // Check argument types
+                boolean match = true;
                 for (int i = 0; i < call.arguments.size(); i++) {
                     Type argType = checkExpression(call.arguments.get(i), localEnv);
                     Type expectedType = methodType.paramTypes.get(i);
                     if (!argType.getClass().equals(expectedType.getClass())) {
-                        throw new RuntimeException("Argument type mismatch at position " + i + " in method-like call to " + call.callee);
+                        match = false;
+                        break;
                     }
                 }
-
-                return methodType.returnType;
+        
+                if (match) {
+                    return methodType.returnType;
+                }
             }
-        }
+        
+            throw new RuntimeException("No matching overload found for method-like call to " + call.callee);
 
-//// Refactored on 05/07/2025
-        ///// Handle method call for struct implementations
-        ///if (calleeType instanceof StructType) {
-        ///    StructType structType = (StructType) calleeType;
-        ///    List<ImplDef> implsForStruct = env.impls.getOrDefault(structType.name, new ArrayList<>());
-///
-        ///    for (List<ImplDef> implList : env.impls.values()) {
-        ///        for (ImplDef impl : implList) {
-        ///            if (impl.forType instanceof StructType) {
-        ///                StructType implType = (StructType) impl.forType;
-        ///                if (implType.name.equals(structType.name)) {
-        ///                    implsForStruct.add(impl);
-        ///                }
-        ///            }
-        ///        }
-        ///    }
-        ///    throw new RuntimeException("Method " + call.callee + " not found for struct " + structType.name);
-        ///}
+
+        }
 
         throw new RuntimeException("Trying to call a non-function or non-method");
     } else if (expr instanceof MethodCallExpr) {
         MethodCallExpr mcall = (MethodCallExpr) expr;
     
-        // First, check the type of the receiver
-        Type receiverType = checkExpression(mcall.receiver, localEnv);
+    // Check the type of the receiver
+    Type receiverType = checkExpression(mcall.receiver, localEnv);
     
-        // Ensure the receiver is a StructType before proceeding
-        if (!(receiverType instanceof StructType)) {
-            throw new RuntimeException("Method call on non-struct type");
-        }
+    // Ensure the receiver is a StructType
+    if (!(receiverType instanceof StructType)) {
+        throw new RuntimeException("Method call on non-struct type");
+    }
     
-        // Cast to StructType after confirming it is a StructType
-        StructType structType = (StructType) receiverType;
-    
-        // Try direct method map lookup
-        Map<String, FunctionType> methods = methodsForType.get(receiverType);
-        if (methods != null && methods.containsKey(mcall.methodName)) {
-            FunctionType methodType = methods.get(mcall.methodName);
-    
-            // Check if the number of arguments matches
-            if (mcall.arguments.size() != methodType.paramTypes.size()) {
-                throw new RuntimeException("Argument count mismatch in method call to " + mcall.methodName);
+    StructType structType = (StructType) receiverType;
+
+    // Try to find the method in the struct's method map
+    Map<String, List<FunctionType>> methods = methodsForType.get(structType);
+    if (methods != null && methods.containsKey(mcall.methodName)) {
+        List<FunctionType> overloads = methods.get(mcall.methodName);
+        
+        // Match overloads based on argument types
+        for (FunctionType candidate : overloads) {
+            if (candidate.paramTypes.size() != mcall.arguments.size()) {
+                continue;
             }
-    
-            // Check argument types match
+            
+            boolean match = true;
             for (int i = 0; i < mcall.arguments.size(); i++) {
                 Type argType = checkExpression(mcall.arguments.get(i), localEnv);
-                Type expectedType = methodType.paramTypes.get(i);
+                Type expectedType = candidate.paramTypes.get(i);
                 if (!argType.getClass().equals(expectedType.getClass())) {
-                    throw new RuntimeException("Argument type mismatch at position " + i + " in method call to " + mcall.methodName);
+                    match = false;
+                    break;
                 }
             }
-    
-            // Return the return type of the method if everything is valid
-            return methodType.returnType;
+
+            // Return the matching function's return type
+            if (match) {
+                return candidate.returnType;
+            }
         }
+        
+        throw new RuntimeException("No matching overload for method " + mcall.methodName + " with given argument types.");
+    }
     
-        // Fall back to checking impls
-        List<ImplDef> impls = env.impls.get(receiverType);
-        if (impls != null) {
-            for (ImplDef impl : impls) {
-                // Instead of a List, methods are a Map<String, FunctionType>
-                Map<String, FunctionType> methodMap = impl.methods;
-    
-                if (methodMap != null && methodMap.containsKey(mcall.methodName)) {
-                    FunctionType functionType = methodMap.get(mcall.methodName);
-    
-                    // Check if the number of arguments matches
+    // Fallback to check for methods in implementation blocks
+    List<ImplDef> impls = env.impls.get(structType);
+    if (impls != null) {
+        for (ImplDef impl : impls) {
+            Map<String, List<FunctionType>> methodMap = impl.methods;
+            
+            if (methodMap != null && methodMap.containsKey(mcall.methodName)) {
+                List<FunctionType> overloads = methodMap.get(mcall.methodName);
+                
+                // Match overloads in implementation blocks
+                for (FunctionType functionType : overloads) {
                     if (mcall.arguments.size() != functionType.paramTypes.size()) {
-                        throw new RuntimeException("Argument count mismatch in method call to " + mcall.methodName);
+                        continue;
                     }
-    
-                    // Check argument types match
+
+                    boolean match = true;
                     for (int k = 0; k < mcall.arguments.size(); k++) {
                         Type argType = checkExpression(mcall.arguments.get(k), localEnv);
                         Type expectedType = functionType.paramTypes.get(k);
                         if (!argType.getClass().equals(expectedType.getClass())) {
-                            throw new RuntimeException("Argument type mismatch at position " + k + " in method call to " + mcall.methodName);
+                            match = false;
+                            break;
                         }
                     }
-    
-                    // Return the return type of the method if everything is valid
-                    return functionType.returnType;
+
+                    // Return the matching function's return type
+                    if (match) {
+                        return functionType.returnType;
+                    }
                 }
+                
+                throw new RuntimeException("No matching overload for method " + mcall.methodName + " in impl block.");
             }
         }
-    
-        // If no matching method found, throw an exception
-        throw new RuntimeException("Method " + mcall.methodName + " not found for struct " + structType.name);
+    }
+
+    // If no matching method found, throw an exception
+    throw new RuntimeException("Method " + mcall.methodName + " not found for struct " + structType.name);
     } else if (expr instanceof FieldAccessExpr f) {
         Type receiverType = checkExpression(f.receiver, localEnv);
     

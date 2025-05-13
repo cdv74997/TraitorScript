@@ -108,34 +108,51 @@ public class TypeCheckerTest {
         });
     }
 
-    @Test 
+    @Test
     public void testTraitMethodReference() {
         TypeChecker checker = new TypeChecker();
     
+        // Correct the method map for the trait "Printable"
         Map<String, FunctionType> printableMethods = new HashMap<>();
-        printableMethods.put("doSomething", new FunctionType(List.of(), new VoidType())); // define it here
+        printableMethods.put("doSomething", new FunctionType(List.of(), new VoidType())); // defining doSomething method
+        
+        // Create the trait definition with methods
         TraitDef printable = new TraitDef("Printable", printableMethods);
         checker.checkTrait(printable);
     
+        // Define the struct "Box"
         Map<String, Type> fields = new HashMap<>();
-        fields.put("value", new IntType());
+        fields.put("value", new IntType()); // Adding field "value" of type IntType
         StructDef boxDef = new StructDef("Box", fields);
         checker.checkStruct(boxDef);
     
-        Map<String, FunctionType> implMethods = new HashMap<>();
-        implMethods.put("doSomething", new FunctionType(List.of(), new VoidType())); // and here
+        // Define the implementation method map for the trait "Printable" for "Box"
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> implDoSomethingMethods = new ArrayList<>();
+        implDoSomethingMethods.add(new FunctionType(List.of(), new VoidType())); // defining doSomething method
+        implMethods.put("doSomething", implDoSomethingMethods); // List of methods for doSomething
+        
+        // Create implementation for the trait "Printable" for the struct "Box"
         ImplDef impl = new ImplDef("Printable", new StructType("Box"), implMethods);
         checker.checkImpl(impl);
     
+        // Define the local environment with a variable "b" of type "Box"
         Map<String, Type> localEnv = new HashMap<>();
         localEnv.put("b", new StructType("Box"));
     
+        // Create a variable expression for "b" and invoke the "doSomething" method
         VariableExpr bVar = new VariableExpr("b");
         MethodCallExpr call = new MethodCallExpr(bVar, "doSomething", List.of());
     
+        // Check the expression and assert that the result type is VoidType
         Type result = checker.checkExpression(call, localEnv);
         assertTrue(result instanceof VoidType);
     }
+
+
+
+
+
 
     
 
@@ -143,39 +160,52 @@ public class TypeCheckerTest {
     public void testTraitImplementationForStruct() {
         TypeChecker typeChecker = new TypeChecker();
     
+        // Define the Addable trait with the "add" method
         TraitDef addableTrait = new TraitDef("Addable", new HashMap<>());
         FunctionType addMethodType = new FunctionType(
-                Arrays.asList(new IntType()),
-                new IntType()
+                Arrays.asList(new IntType()), // Argument type
+                new IntType() // Return type
         );
-        addableTrait.methods.put("add", addMethodType);
+        addableTrait.methods.put("add", addMethodType); // Add the method to the trait
     
+        // Define the IntWrapper struct with a field "value"
         StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
         intWrapperStruct.fields.put("value", new IntType());
     
-        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
-        addableForIntWrapper.methods.put("add", addMethodType);
+        // Define the implementation of the Addable trait for the IntWrapper struct
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> implAddMethodList = new ArrayList<>();
+        implAddMethodList.add(addMethodType); // Add the "add" method to the impl
+        implMethods.put("add", implAddMethodList); // Map "add" method to the impl
+        
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), implMethods);
     
+        // Register the trait, struct, and implementation in the type checker
         typeChecker.checkTrait(addableTrait);
         typeChecker.checkStruct(intWrapperStruct);
         typeChecker.checkImpl(addableForIntWrapper);
     
+        // Assert that the implementation is registered in the environment
         assertTrue(typeChecker.env.impls.containsKey("Addable"),
                    "ImplDef for Addable should be registered");
     
+        // Retrieve the list of implementations for the "Addable" trait
         List<ImplDef> implList = typeChecker.env.impls.get("Addable");
         assertNotNull(implList, "Impl list for Addable should not be null");
         assertFalse(implList.isEmpty(), "Impl list for Addable should not be empty");
-        
+    
+        // Retrieve the first implementation and verify its type
         ImplDef retrievedImpl = implList.get(0);
         assertEquals("IntWrapper", ((StructType) retrievedImpl.forType).name,
                      "Implementation type should be IntWrapper");
-        
+    
+        // Verify that the "add" method is present in the implementation
         assertTrue(retrievedImpl.methods.containsKey("add"),
-           "Method add should exist in the implementation");
+                   "Method add should exist in the implementation");
     }
 
-    @Test 
+
+    @Test
     public void testTraitMethodTypeResolution() {
         TypeChecker typeChecker = new TypeChecker();
         
@@ -185,16 +215,20 @@ public class TypeCheckerTest {
                 Arrays.asList(new IntType()),  // Parameter type: Int
                 new IntType()                  // Return type: Int
         );
-        addableTrait.methods.put("add", addMethodType);
+        addableTrait.methods.put("add", addMethodType); // Add the method to the trait
         
         // Define the 'IntWrapper' struct with a field 'value' of type Int
         StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
         intWrapperStruct.fields.put("value", new IntType());
         
         // Implement 'Addable' for 'IntWrapper'
-        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
-        addableForIntWrapper.methods.put("add", addMethodType);
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> implAddMethodList = new ArrayList<>();
+        implAddMethodList.add(addMethodType); // Add the "add" method to the impl
+        implMethods.put("add", implAddMethodList); // Map "add" method to the impl
         
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), implMethods);
+    
         // Register the trait, struct, and implementation
         typeChecker.checkTrait(addableTrait);
         typeChecker.checkStruct(intWrapperStruct);
@@ -209,29 +243,30 @@ public class TypeCheckerTest {
         ImplDef retrievedImpl = implList.get(0);
         assertNotNull(retrievedImpl,
                       "The implementation for Addable should not be null");
-        
+    
         // Validate that the implementation is for the correct struct type
         assertEquals("IntWrapper", ((StructType) retrievedImpl.forType).name,
                      "Implementation type should be IntWrapper");
-        
+    
         // Ensure the method 'add' exists in the implementation
         assertTrue(retrievedImpl.methods.containsKey("add"),
                    "Method add should exist in the implementation");
     
         // Validate the method's return type
-        FunctionType returnedAddMethod = (FunctionType) retrievedImpl.methods.get("add");
+        FunctionType returnedAddMethod = (FunctionType) retrievedImpl.methods.get("add").get(0);
         assertEquals(new IntType(), returnedAddMethod.returnType,
                      "The return type of add method should be Int");
-        
+    
         // Validate the method's parameter type
         assertEquals(Arrays.asList(new IntType()), returnedAddMethod.paramTypes,
                      "The parameter type of add method should be Int");
     }
 
+
     @Test
     public void testTraitMethodCallOnStructInstance() {
         TypeChecker typeChecker = new TypeChecker();
-    
+        
         // Define the 'Addable' trait with a method 'add'
         TraitDef addableTrait = new TraitDef("Addable", new HashMap<>());
         FunctionType addMethodType = new FunctionType(
@@ -239,41 +274,46 @@ public class TypeCheckerTest {
                 new IntType()                  // Return type: Int
         );
         addableTrait.methods.put("add", addMethodType);
-    
+        
         // Define the 'IntWrapper' struct with a field 'value' of type Int
         StructDef intWrapperStruct = new StructDef("IntWrapper", new HashMap<>());
         intWrapperStruct.fields.put("value", new IntType());
-    
+        
         // Implement 'Addable' for 'IntWrapper'
-        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), new HashMap<>());
-        addableForIntWrapper.methods.put("add", addMethodType);
-    
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> addMethodList = new ArrayList<>();
+        addMethodList.add(addMethodType); // Add method to implementation
+        implMethods.put("add", addMethodList); // Map the "add" method
+        
+        ImplDef addableForIntWrapper = new ImplDef("Addable", new StructType("IntWrapper"), implMethods);
+        
         // Register the trait, struct, and implementation
         typeChecker.checkTrait(addableTrait);
         typeChecker.checkStruct(intWrapperStruct);
         typeChecker.checkImpl(addableForIntWrapper);
-    
+        
         // Create an instance of IntWrapper using StructInstantiationExpr
         Map<String, Expression> fields = new HashMap<>();
         fields.put("value", new IntLiteralExpr(5));  // Assuming IntLiteralExpr represents integer literals
         StructInstantiationExpr intWrapperInstance = new StructInstantiationExpr("IntWrapper", fields);
-    
+        
         // Ensure the instance is created
         assertNotNull(intWrapperInstance, "Instance of IntWrapper should not be null");
-    
+        
         // Create a MethodCallExpr for calling 'add' on the IntWrapper instance
         MethodCallExpr addMethodCall = new MethodCallExpr(
                 intWrapperInstance,           // Receiver expression (the struct instance itself)
                 "add",                        // Method name
                 Arrays.asList(new IntLiteralExpr(3))  // Argument (integer literal)
         );
-    
+        
         // Perform type-checking and ensure no exceptions are thrown
         Type returnType = typeChecker.checkExpression(addMethodCall, new HashMap<>());
-    
+        
         // Assert that the method call resolved to the correct return type (IntType)
-        assertEquals(new IntType().getClass(), returnType.getClass(), "The return type of the add method should be Int");
+        assertTrue(returnType instanceof IntType, "The return type of the add method should be Int");
     }
+
 
     @Test
     public void testArithmeticExpressionType() {
@@ -313,83 +353,94 @@ public class TypeCheckerTest {
     @Test
     public void testSelfReferenceInTrait() {
         TypeChecker checker = new TypeChecker();
-    
+        
         // trait Addable { method add(other: Self): Self }
         Map<String, FunctionType> traitMethods = new HashMap<>();
         traitMethods.put("add", new FunctionType(
             List.of(new StructType("MyInt")),  // Self resolved to MyInt
-            new StructType("MyInt")
+            new StructType("MyInt")            // Return type is MyInt
         ));
         TraitDef trait = new TraitDef("Addable", traitMethods);
         checker.checkTrait(trait);
-    
+        
         // struct MyInt { value: Int }
         Map<String, Type> fields = new HashMap<>();
         fields.put("value", new IntType());
         StructDef struct = new StructDef("MyInt", fields);
         checker.checkStruct(struct);
-    
+        
         // impl Addable for MyInt { method add(other: MyInt): MyInt { return new MyInt { value: self.value + other.value } } }
-        Map<String, FunctionType> implMethods = new HashMap<>();
-        implMethods.put("add", new FunctionType(
-            List.of(new StructType("MyInt")),
-            new StructType("MyInt")
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> addMethodList = new ArrayList<>();
+        addMethodList.add(new FunctionType(
+            List.of(new StructType("MyInt")),  // Parameter type is MyInt
+            new StructType("MyInt")            // Return type is MyInt
         ));
+        implMethods.put("add", addMethodList); // Adding the method to the map
+        
         ImplDef impl = new ImplDef("Addable", new StructType("MyInt"), implMethods);
-    
+        
         // This shouldn't throw
         assertDoesNotThrow(() -> checker.checkImpl(impl));
     }
 
+
+
+
+
     @Test
     public void testMethodCallWithStructArgument() {
         TypeChecker checker = new TypeChecker();
-    
-        // Define a trait with a method that takes a struct as argument
+        
+        // Define a trait with a method that takes a struct as an argument
         Map<String, FunctionType> methods = new HashMap<>();
         methods.put("process", new FunctionType(
-            List.of(new StructType("Data")),
-            new IntType()
+            List.of(new StructType("Data")),  // Argument type: Data (struct)
+            new IntType()                     // Return type: Int
         ));
         TraitDef trait = new TraitDef("Processor", methods);
         checker.checkTrait(trait);
-    
+        
         // Define the struct
         Map<String, Type> fields = new HashMap<>();
         fields.put("val", new IntType());
         StructDef struct = new StructDef("Data", fields);
         checker.checkStruct(struct);
-    
+        
         // Implement the trait for the struct
-        Map<String, FunctionType> implMethods = new HashMap<>();
-        implMethods.put("process", new FunctionType(
-            List.of(new StructType("Data")),
-            new IntType()
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        List<FunctionType> implProcessMethodList = new ArrayList<>();
+        implProcessMethodList.add(new FunctionType(
+            List.of(new StructType("Data")),  // Argument type: Data (struct)
+            new IntType()                     // Return type: Int
         ));
+        implMethods.put("process", implProcessMethodList);  // Add the method to the map
         ImplDef impl = new ImplDef("Processor", new StructType("Data"), implMethods);
         checker.checkImpl(impl);
-    
+        
         // Make a variable in the environment of type Processor
         Map<String, Type> env = new HashMap<>();
         env.put("p", new StructType("Data")); // p is the receiver of the method
-    
+        
         // Create an argument: new Data { val: 123 }
         Map<String, Expression> argFields = new HashMap<>();
         argFields.put("val", new IntLiteralExpr(123));
         StructInstantiationExpr arg = new StructInstantiationExpr("Data", argFields);
-    
+        
         // Method call: p.process(new Data { val: 123 })
         MethodCallExpr call = new MethodCallExpr(
             new VariableExpr("p"),
             "process",
             List.of(arg)
         );
-    
+        
         // Type check
         Type result = checker.checkExpression(call, env);
-    
+        
         assertTrue(result instanceof IntType, "Expected IntType as result of method call");
     }
+
+
 
 
 

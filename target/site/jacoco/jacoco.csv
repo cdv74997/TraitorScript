@@ -11,14 +11,14 @@ TraitorScript,parser,SelfType,0,3,0,0,0,1,0,1,0,1
 TraitorScript,parser,ConcMethodDef,0,27,0,0,0,1,0,5,0,5
 TraitorScript,parser,EqOp,0,3,0,0,0,1,0,1,0,1
 TraitorScript,parser,LessThanOp,0,3,0,0,0,1,0,1,0,1
-TraitorScript,parser,Parser,325,1891,18,96,77,362,18,69,4,26
+TraitorScript,parser,Parser,112,2052,11,101,20,410,10,76,0,30
 TraitorScript,parser,StructType,0,9,0,0,0,1,0,2,0,2
 TraitorScript,parser,BooleanType,0,5,0,0,0,2,0,2,0,2
 TraitorScript,parser,SelfExp,0,3,0,0,0,1,0,1,0,1
 TraitorScript,parser,ParenExp,0,9,0,0,0,1,0,2,0,2
 TraitorScript,parser,StructActualParam,0,15,0,0,0,1,0,3,0,3
 TraitorScript,parser,MulOp,0,3,0,0,0,1,0,1,0,1
-TraitorScript,parser,Program,15,0,0,0,1,0,3,0,3,0
+TraitorScript,parser,Program,0,15,0,0,0,1,0,3,0,3
 TraitorScript,parser,AddOp,0,3,0,0,0,1,0,1,0,1
 TraitorScript,parser,DotExp,14,9,0,0,1,1,3,1,3,1
 TraitorScript,parser,ParseException,12,7,0,0,4,3,2,1,2,1
@@ -30,7 +30,7 @@ TraitorScript,parser,WhileStmt,0,15,0,0,0,1,0,3,0,3
 TraitorScript,parser,AbsMethodDef,0,21,0,0,0,1,0,4,0,4
 TraitorScript,parser,OrOp,3,0,0,0,1,0,1,0,1,0
 TraitorScript,parser,BinOpExp,0,21,0,0,0,1,0,4,0,4
-TraitorScript,parser,CallExpr,15,0,0,0,1,0,3,0,3,0
+TraitorScript,parser,CallExpr,3,12,0,0,0,1,1,2,1,2
 TraitorScript,parser,FuncDef,0,27,0,0,0,1,0,5,0,5
 TraitorScript,parser,PrintlnStmt,0,9,0,0,0,1,0,2,0,2
 TraitorScript,parser,TraitDef,0,15,0,0,0,1,0,3,0,3

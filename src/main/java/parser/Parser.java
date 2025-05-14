@@ -383,18 +383,18 @@ public class Parser {
             );
         }
 
-        if (t instanceof LetToken) {
-            ParseResult<Param> paramRes = param(startPos + 1);
-            assertTokenIs(paramRes.nextPos(), new EqualsToken());
-            ParseResult<Exp> rhs = exp(paramRes.nextPos() + 1);
-            assertTokenIs(rhs.nextPos(), new SemicolonToken());
+        // if (t instanceof LetToken) {
+        //     ParseResult<Param> paramRes = param(startPos + 1);
+        //     assertTokenIs(paramRes.nextPos(), new EqualsToken());
+        //     ParseResult<Exp> rhs = exp(paramRes.nextPos() + 1);
+        //     assertTokenIs(rhs.nextPos(), new SemicolonToken());
         
-            Param p = paramRes.result();
-            return new ParseResult<>(
-                new LetStmt(p.name(), p.type(), rhs.result()),
-                rhs.nextPos() + 1
-            );
-        }
+        //     Param p = paramRes.result();
+        //     return new ParseResult<>(
+        //         new LetStmt(p.name(), p.type(), rhs.result()),
+        //         rhs.nextPos() + 1
+        //     );
+        // }
         
         // var = exp;
         if (t instanceof IdentifierToken id1 &&
@@ -864,23 +864,7 @@ public class Parser {
     }
     
         
-    // program ::= stmt*
-    // public ParseResult<Program> program(final int startPos) {
-    //     List<Stmt> stmts = new ArrayList<>();
-    //     int pos = startPos;
-
-    //     while (pos < tokens.length) {
-    //         try {
-    //             ParseResult<Stmt> res = stmt(pos);
-    //             stmts.add(res.result());
-    //             pos = res.nextPos();
-    //         } catch (ParseException e) {
-    //             break;
-    //         }
-    //     }
-
-    //     return new ParseResult<Program>(new Program(stmts), pos);
-    // }
+    
 
     // Top-level entry point
     public Program parseWholeProgram() throws ParseException {
@@ -896,46 +880,3 @@ public class Parser {
 
 
 
-// // primaryExp ::= IDENTIFIER | INTEGER | `(` exp `)`
-    // public ParseResult<Exp> primaryExp(final int startPos) throws ParseException {
-    //     Token t = getToken(startPos);
-
-    //     if (t instanceof IdentifierToken id) {
-    //         return new ParseResult<>(new VarExp(id.name()), startPos + 1);
-    //     } else if (t instanceof IntegerLiteralToken i) {
-    //         return new ParseResult<>(new IntLiteral(i.value()), startPos + 1);
-    //     } else if (t instanceof LParenToken) {
-    //         ParseResult<Exp> inner = exp(startPos + 1);
-    //         assertTokenIs(inner.nextPos(), new RParenToken());
-    //         return new ParseResult<>(new ParenExp(inner.result()), inner.nextPos() + 1);
-    //     } else {
-    //         throw new ParseException("Expected primary expression at " + startPos);
-    //     }
-    // }
-
-    // stmt ::= IDENTIFIER = exp ; | print exp ; | return [exp] ;
-    // public ParseResult<Stmt> stmt(final int startPos) throws ParseException {
-    //     Token token = getToken(startPos);
-
-    //     if (token instanceof IdentifierToken id) {
-    //         assertTokenIs(startPos + 1, new EqualsToken());
-    //         ParseResult<Exp> expr = exp(startPos + 2);
-    //         assertTokenIs(expr.nextPos(), new SemicolonToken());
-    //         return new ParseResult<>(new AssignStmt(id.name(), expr.result()), expr.nextPos() + 1);
-    //     } else if (token instanceof PrintToken) {
-    //         ParseResult<Exp> expr = exp(startPos + 1);
-    //         assertTokenIs(expr.nextPos(), new SemicolonToken());
-    //         return new ParseResult<>(new PrintlnStmt(expr.result()), expr.nextPos() + 1);
-    //     } else if (token instanceof ReturnToken) {
-    //         try {
-    //             ParseResult<Exp> expr = exp(startPos + 1);
-    //             assertTokenIs(expr.nextPos(), new SemicolonToken());
-    //             return new ParseResult<Stmt>(new ReturnStmt(Optional.of(expr.result())), expr.nextPos() + 1);
-    //         } catch (ParseException e) {
-    //             assertTokenIs(startPos + 1, new SemicolonToken());
-    //             return new ParseResult<Stmt>(new ReturnStmt(Optional.empty()), startPos + 2);
-    //         }
-    //     } else {
-    //         throw new ParseException("Expected statement at " + startPos);
-    //     }
-    // }

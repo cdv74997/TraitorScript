@@ -1228,7 +1228,167 @@ public class ParserTest {
         BinOpExp firstOp = (BinOpExp) result.result();
         assertTrue(firstOp.op() instanceof LessThanOp);  // The operator should be less-than
     }
+
+
+    // call_exp ::= dot_exp (`(` comma_exp `)`)* 
+    // @Test
+    // void testCallExp_noArgs() throws ParseException {
+    //     Token[] tokens = new Token[] {
+    //         new IdentifierToken("f"),  // dotExp is just 'f'
+    //         new LParenToken(),
+    //         new RParenToken()
+    //     };
     
+    //     Parser parser = new Parser(tokens);
+    //     ParseResult<Exp> result = parser.callExp(0);
+    
+    //     assertTrue(result.result() instanceof CallExpr);
+    //     CallExpr call = (CallExpr) result.result();
+    
+    //     assertTrue(call.callee() instanceof VarExp);
+    //     assertEquals("f", ((VarExp) call.callee()).name());
+    //     assertTrue(call.arguments().isEmpty());
+    // }
+
+    @Test
+    void testCallExp_oneArg() throws ParseException {
+        Token[] tokens = new Token[] {
+            new IdentifierToken("f"),
+            new LParenToken(),
+            new IntegerLiteralToken(42),
+            new RParenToken()
+        };
+    
+        Parser parser = new Parser(tokens);
+        ParseResult<Exp> result = parser.callExp(0);
+    
+        assertTrue(result.result() instanceof CallExpr);
+        CallExpr call = (CallExpr) result.result();
+    
+        assertEquals(1, call.arguments().size());
+        assertEquals(42, ((IntLiteral) call.arguments().get(0)).value());
+    }
+
+    @Test
+    void testCallExp_multipleArgs() throws ParseException {
+        Token[] tokens = new Token[] {
+            new IdentifierToken("sum"),
+            new LParenToken(),
+            new IntegerLiteralToken(1),
+            new CommaToken(),
+            new IntegerLiteralToken(2),
+            new CommaToken(),
+            new IntegerLiteralToken(3),
+            new RParenToken()
+        };
+    
+        Parser parser = new Parser(tokens);
+        ParseResult<Exp> result = parser.callExp(0);
+    
+        assertTrue(result.result() instanceof CallExpr);
+        CallExpr call = (CallExpr) result.result();
+    
+        assertEquals(3, call.arguments().size());
+    }
+
+
+    //program ::= program_item* stmt* stmt* is the entry point
+    // @Test
+    // void testProgram_onlyStatements() throws ParseException {
+    //     Token[] tokens = new Token[] {
+    //         new PrintlnToken(), new IntegerLiteralToken(1),
+    //         new SemicolonToken(),
+    //         new PrintlnToken(), new IntegerLiteralToken(2),
+    //         new SemicolonToken()
+    //     };
+    //     Parser parser = new Parser(tokens);
+    //     ParseResult<Program> result = parser.program(0);
+        
+    //     Program program = result.result();
+    //     assertEquals(0, program.items().size());
+    //     assertEquals(0, program.stmts().size());
+        
+    //     assertTrue(program.stmts().get(0) instanceof PrintlnStmt);
+    //     assertTrue(program.stmts().get(1) instanceof PrintlnStmt);
+    // }
+
+    @Test
+    void testProgram_onlyProgramItems() throws ParseException {
+        Token[] tokens = new Token[] {
+            new StructToken(), new IdentifierToken("S"),
+            new LCurlyToken(), new RCurlyToken(),  // struct S {}
+            
+            new TraitToken(), new IdentifierToken("T"),
+            new LCurlyToken(), new RCurlyToken()   // trait T {}
+        };
+        Parser parser = new Parser(tokens);
+        ParseResult<Program> result = parser.program(0);
+        
+        Program program = result.result();
+        assertEquals(2, program.items().size());
+        assertEquals(0, program.stmts().size());
+        
+        assertTrue(program.items().get(0) instanceof StructDef);
+        assertTrue(program.items().get(1) instanceof TraitDef);
+    }
+
+    @Test
+    void testProgram_empty() throws ParseException {
+        Token[] tokens = new Token[] {};
+        Parser parser = new Parser(tokens);
+        ParseResult<Program> result = parser.program(0);
+        
+        Program program = result.result();
+        assertEquals(0, program.items().size());
+        assertEquals(0, program.stmts().size());
+    }
+
+
+    
+    //program test
+    // @Test
+    // void testParseWholeProgram_success() throws ParseException {
+    //     Token[] tokens = new Token[] {
+    //         new StructToken(), new IdentifierToken("Point"),
+    //         new LCurlyToken(), new RCurlyToken(),       // struct Point {}
+            
+    //         new PrintlnToken(), new IntegerLiteralToken(5),
+    //         new SemicolonToken()                        // println(5);
+    //     };
+    
+    //     Parser parser = new Parser(tokens);
+    //     Program program = parser.parseWholeProgram();
+    
+    //     assertEquals(1, program.items().size());
+    //     assertEquals(1, program.stmts().size());
+    // } 
+
+    @Test
+    void testParseWholeProgram_extraTokens() {
+        Token[] tokens = new Token[] {
+            new PrintlnToken(), new IntegerLiteralToken(1),
+            new SemicolonToken(),
+    
+            new IdentifierToken("extra") // Unexpected/extra token
+        };
+    
+        Parser parser = new Parser(tokens);
+    
+        ParseException e = assertThrows(ParseException.class, parser::parseWholeProgram);
+        assertTrue(e.getMessage().contains("Extra tokens after program"));
+    }
+
+    @Test
+    void testParseWholeProgram_empty() throws ParseException {
+        Token[] tokens = new Token[] {};
+        Parser parser = new Parser(tokens);
+        Program program = parser.parseWholeProgram();
+    
+        assertEquals(0, program.items().size());
+        assertEquals(0, program.stmts().size());
+    }
+
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     ///

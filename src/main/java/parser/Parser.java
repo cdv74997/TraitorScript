@@ -366,13 +366,22 @@ public class Parser {
         Token t = getToken(startPos);
     
         // let param = exp;
-        // if (t instanceof LetToken) {
-        //     ParseResult<Param> paramRes = param(startPos + 1);
-        //     assertTokenIs(paramRes.nextPos(), new EqualsToken());
-        //     ParseResult<Exp> rhs = exp(paramRes.nextPos() + 1);
-        //     assertTokenIs(rhs.nextPos(), new SemicolonToken());
-        //     return new ParseResult<>(new LetStmt(paramRes.result(), rhs.result()), rhs.nextPos() + 1);
-        // }
+        if (t instanceof LetToken) {
+            ParseResult<Param> paramRes = param(startPos + 1);
+            assertTokenIs(paramRes.nextPos(), new EqualsToken());
+            ParseResult<Exp> rhs = exp(paramRes.nextPos() + 1);
+            assertTokenIs(rhs.nextPos(), new SemicolonToken());
+
+            // Extract the name and type from the Param object
+            Param p = paramRes.result();
+            
+            // Create the LetStmt using the extracted name and type
+            return new ParseResult<>(
+                new LetStmt(p.name(), p.type(), rhs.result()),  // Pass name, type, and rhs expression
+                rhs.nextPos() + 1
+            );
+        }
+
         if (t instanceof LetToken) {
             ParseResult<Param> paramRes = param(startPos + 1);
             assertTokenIs(paramRes.nextPos(), new EqualsToken());
@@ -386,7 +395,6 @@ public class Parser {
             );
         }
         
-    
         // var = exp;
         if (t instanceof IdentifierToken id1 &&
             getToken(startPos + 1) instanceof EqualsToken) {

@@ -1,3 +1,4 @@
+parser\ParserTest.class
 parser\StructDefTest.class
 parser\BinaryExpTest.class
 parser\ParamTest.class

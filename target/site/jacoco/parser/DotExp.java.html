@@ -3,7 +3,7 @@
 //import java.util.List;
 
 //public record DotExp(Exp target, List&lt;String&gt; path) implements Exp{}
-<span class="nc" id="L6">public record DotExp(Exp base, Exp field) implements Exp {</span>
+<span class="pc" id="L6">public record DotExp(Exp base, Exp field) implements Exp {</span>
     @Override
     public String toString() {
 <span class="nc" id="L9">        return base + &quot;.&quot; + field;  // Represents the dot expression as string</span>

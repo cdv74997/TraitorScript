@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: parser.FunctionTypeTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.05 s - in parser.FunctionTypeTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s - in parser.FunctionTypeTest

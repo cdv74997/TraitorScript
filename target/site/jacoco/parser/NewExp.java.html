@@ -5,7 +5,7 @@
 //public record NewExp(String structname, Map&lt;String, Exp&gt; fields) implements Exp{}
 import java.util.List;
 
-<span class="nc" id="L8">public record NewExp(String structName, List&lt;StructActualParam&gt; params) implements Exp {</span>
+<span class="pc" id="L8">public record NewExp(String structName, List&lt;StructActualParam&gt; params) implements Exp {</span>
     @Override
     public String toString() {
 <span class="nc" id="L11">        return &quot;new &quot; + structName + &quot; {&quot; + params + &quot;}&quot;;</span>

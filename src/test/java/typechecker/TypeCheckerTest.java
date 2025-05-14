@@ -1,5 +1,6 @@
 package typechecker;  
 
+
 import typechecker.TypeChecker; 
 import typechecker.Type;
 import typechecker.Expression;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -597,6 +599,225 @@ public class TypeCheckerTest {
         assertTrue(checker.checkExpression(andExpr, env) instanceof BooleanType);
         assertTrue(checker.checkExpression(orExpr, env) instanceof BooleanType);
     }
+
+    @Test
+    void testMethodOverloadAmbiguityWithBoolean() {
+        // Define method overloads with the same parameter type (BooleanType) but different return types
+        FunctionDef function1 = new FunctionDef(
+                "myFunction",
+                Arrays.asList(new Param("param", new BooleanType())),  // Parameter type
+                new IntType(),  // Return type
+                new ArrayList<>()  // Empty list of statements
+        );
+    
+        FunctionDef function2 = new FunctionDef(
+                "myFunction",
+                Arrays.asList(new Param("param", new BooleanType())),  // Parameter type
+                new BooleanType(),  // Return type
+                new ArrayList<>()  // Empty list of statements
+        );
+    
+        // Add function overloads to type checker
+        TypeChecker typeChecker = new TypeChecker();
+    
+        // Use checkFunction method to add the functions
+        typeChecker.checkFunction(function1);
+        typeChecker.checkFunction(function2);
+    
+        // Test method call with a boolean argument
+        Expression expr = new BooleanLiteralExpr(true);
+        try {
+            // Simulate calling a method with the boolean expression argument
+            Map<String, Type> typeMap = new HashMap<>();
+            typeMap.put("param", new BooleanType());  // Example map
+    
+            typeChecker.checkExpression(new MethodCallExpr(
+                    new VariableExpr("myFunction"),
+                    "myFunction",
+                    Arrays.asList(expr)  // Arguments: single boolean literal
+            ), typeMap);
+            
+            fail("Expected method overload ambiguity exception");
+        } catch (RuntimeException e) {
+           
+            assertFalse(e.getMessage().contains("Ambiguous method overload"));  
+        }
+    }
+
+    @Test
+    void testMethodOverloadWithDifferentParamTypesOnStruct() {
+        TypeChecker typeChecker = new TypeChecker();
+        TraitDef storage = new TraitDef("Storage", new HashMap<>());
+        typeChecker.checkTrait(storage);
+        
+        // Define a struct and make sure it's registered correctly
+        StructDef struct = new StructDef("MyStruct", Collections.emptyMap());
+        typeChecker.checkStruct(struct); // Register the struct
+        
+        // Create a StructType for MyStruct
+        StructType myStructType = new StructType("MyStruct");
+        
+        // First overload: doThing(flag: Boolean): Int
+        FunctionDef methodBool = new FunctionDef(
+            "doThing",
+            Arrays.asList(new Param("flag", new BooleanType())), // BooleanType
+            new IntType(),
+            Collections.emptyList()
+        );
+        
+        // Second overload: doThing(n: Int): Boolean
+        FunctionDef methodInt = new FunctionDef(
+            "doThing",
+            Arrays.asList(new Param("n", new IntType())), // IntType
+            new BooleanType(),
+            Collections.emptyList()
+        );
+        
+        // Add method overloads using the public checkImpl method
+        Map<String, List<FunctionType>> methods = new HashMap<>();
+        methods.put("doThing", Arrays.asList(
+            new FunctionType(Arrays.asList(new BooleanType()), new IntType()), 
+            new FunctionType(Arrays.asList(new IntType()), new BooleanType())
+        ));
+        typeChecker.checkImpl(new ImplDef("Storage", myStructType, methods)); // Ensure correct ImplDef
+        
+        // Method call with boolean param: MyStruct().doThing(true)
+        Expression callBool = new MethodCallExpr(
+            new StructInstantiationExpr("MyStruct", Collections.emptyMap()),
+            "doThing",
+            Arrays.asList(new BooleanLiteralExpr(true))
+        );
+        
+        // Method call with int param: MyStruct().doThing(42)
+        Expression callInt = new MethodCallExpr(
+            new StructInstantiationExpr("MyStruct", Collections.emptyMap()),
+            "doThing",
+            Arrays.asList(new IntLiteralExpr(42))
+        );
+        
+        // Define a map with the expected types for the method calls
+        Map<String, Type> context = new HashMap<>();
+        
+        // Type check both expressions with the context map
+        Type resultBool = typeChecker.checkExpression(callBool, context); // Corrected method call with context map
+        Type resultInt = typeChecker.checkExpression(callInt, context); // Corrected method call with context map
+        
+        // Assert expected types based on the overloads
+        assertTrue(resultBool instanceof IntType, "Expected IntType from boolean overload");
+        assertTrue(resultInt instanceof BooleanType, "Expected BooleanType from int overload");
+    }
+
+    @Test
+    void testTraitOverrideStructureOnly() {
+        TypeChecker typeChecker = new TypeChecker();
+    
+        // Define trait with method signature (empty param list, Int return type)
+        Map<String, FunctionType> traitMethods = new HashMap<>();
+        
+        TraitDef trait = new TraitDef("Valuable", traitMethods);
+        typeChecker.checkTrait(trait);
+    
+        // Define struct
+        StructDef struct = new StructDef("Box", Collections.emptyMap());
+        typeChecker.checkStruct(struct);
+        StructType structType = new StructType("Box");
+    
+        // Impl overrides getVal
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        implMethods.put("getVal", List.of(
+            new FunctionType(List.of(), new IntType())
+        ));
+        ImplDef impl = new ImplDef("Valuable", structType, implMethods);
+        typeChecker.checkImpl(impl);
+    
+        
+    }
+
+    @Test
+    void testFieldAccessFromStruct() {
+        TypeChecker checker = new TypeChecker();
+        StructDef point = new StructDef("Point", Map.of("x", new IntType(), "y", new IntType()));
+        checker.checkStruct(point);
+    
+        Map<String, Expression> fields = Map.of("x", new IntLiteralExpr(1), "y", new IntLiteralExpr(2));
+        Expression structExpr = new StructInstantiationExpr("Point", fields);
+        Expression fieldAccess = new FieldAccessExpr(structExpr, "x");
+    
+        Type result = checker.checkExpression(fieldAccess, new HashMap<>());
+        assertTrue(result instanceof IntType, "Expected IntType from accessing field 'x'");
+    }
+
+    @Test
+    void testCallExprWithFunctionVariable() {
+        TypeChecker checker = new TypeChecker();
+        FunctionType funcType = new FunctionType(List.of(new IntType()), new IntType());
+    
+        Map<String, Type> env = new HashMap<>();
+        env.put("f", funcType);
+    
+        Expression call = new CallExpr(new VariableExpr("f"), List.of(new IntLiteralExpr(5)));
+        Type result = checker.checkExpression(call, env);
+    
+        assertTrue(result instanceof IntType, "Expected IntType from function call");
+    }
+
+    @Test
+    void testUnknownVariableThrows() {
+        TypeChecker checker = new TypeChecker();
+        Expression expr = new VariableExpr("unknown");
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    void testMethodCallNoMatchingOverload() {
+        TypeChecker checker = new TypeChecker();
+    
+        TraitDef t = new TraitDef("TestTrait", Map.of("doThing", new FunctionType(List.of(new IntType()), new IntType())));
+        checker.checkTrait(t);
+    
+        StructDef s = new StructDef("MyStruct", Map.of());
+        checker.checkStruct(s);
+    
+        Map<String, List<FunctionType>> implMethods = new HashMap<>();
+        implMethods.put("doThing", List.of(new FunctionType(List.of(new IntType()), new IntType())));
+        checker.checkImpl(new ImplDef("TestTrait", new StructType("MyStruct"), implMethods));
+    
+        Expression call = new MethodCallExpr(
+            new StructInstantiationExpr("MyStruct", Map.of()),
+            "doThing",
+            List.of(new BooleanLiteralExpr(true)) // Wrong type
+        );
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(call, new HashMap<>()));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+    
 
 
 

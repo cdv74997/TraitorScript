@@ -166,10 +166,10 @@ class LetStatement implements Statement {
     Param param;
     Expression expr;
 
-<span class="nc" id="L169">    LetStatement(Param param, Expression expr) {</span>
-<span class="nc" id="L170">        this.param = param;</span>
-<span class="nc" id="L171">        this.expr = expr;</span>
-<span class="nc" id="L172">    }</span>
+<span class="fc" id="L169">    LetStatement(Param param, Expression expr) {</span>
+<span class="fc" id="L170">        this.param = param;</span>
+<span class="fc" id="L171">        this.expr = expr;</span>
+<span class="fc" id="L172">    }</span>
 }
 
 class AssignStatement implements Statement {
@@ -185,9 +185,9 @@ class AssignStatement implements Statement {
 class ReturnStatement implements Statement {
     Expression expr;
 
-<span class="nc" id="L188">    ReturnStatement(Expression expr) {</span>
-<span class="nc" id="L189">        this.expr = expr;</span>
-<span class="nc" id="L190">    }</span>
+<span class="fc" id="L188">    ReturnStatement(Expression expr) {</span>
+<span class="fc" id="L189">        this.expr = expr;</span>
+<span class="fc" id="L190">    }</span>
 }
 
 class VariableExpr implements Expression {
@@ -305,14 +305,14 @@ class StructInstantiationExpr implements Expression {
 <span class="fc" id="L305">    }</span>
 
     public void checkStatement(Statement stmt, Map&lt;String, Type&gt; localEnv) {
-<span class="nc bnc" id="L308" title="All 2 branches missed.">        if (stmt instanceof LetStatement) {</span>
-<span class="nc" id="L309">            LetStatement let = (LetStatement) stmt;</span>
-<span class="nc" id="L310">            Type exprType = checkExpression(let.expr, localEnv);</span>
-<span class="nc bnc" id="L311" title="All 2 branches missed.">            if (!exprType.getClass().equals(let.param.type.getClass())) {</span>
-<span class="nc" id="L312">                throw new RuntimeException(&quot;Type mismatch in let statement: expected &quot; + let.param.type + &quot;, got &quot; + exprType);</span>
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        if (stmt instanceof LetStatement) {</span>
+<span class="fc" id="L309">            LetStatement let = (LetStatement) stmt;</span>
+<span class="fc" id="L310">            Type exprType = checkExpression(let.expr, localEnv);</span>
+<span class="pc bpc" id="L311" title="1 of 2 branches missed.">            if (!exprType.getClass().equals(let.param.type.getClass())) {</span>
+<span class="fc" id="L312">                throw new RuntimeException(&quot;Type mismatch in let statement: expected &quot; + let.param.type + &quot;, got &quot; + exprType);</span>
             }
 <span class="nc" id="L314">            localEnv.put(let.param.name, let.param.type);</span>
-<span class="nc bnc" id="L315" title="All 2 branches missed.">        } else if (stmt instanceof AssignStatement) {</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">        } else if (stmt instanceof AssignStatement) {</span>
 <span class="nc" id="L316">            AssignStatement assign = (AssignStatement) stmt;</span>
 <span class="nc bnc" id="L317" title="All 2 branches missed.">            if (!localEnv.containsKey(assign.var)) {</span>
 <span class="nc" id="L318">                throw new RuntimeException(&quot;Unknown variable: &quot; + assign.var);</span>
@@ -321,11 +321,11 @@ class StructInstantiationExpr implements Expression {
 <span class="nc bnc" id="L321" title="All 2 branches missed.">            if (!exprType.getClass().equals(localEnv.get(assign.var).getClass())) {</span>
 <span class="nc" id="L322">                throw new RuntimeException(&quot;Type mismatch in assignment&quot;);</span>
             }
-<span class="nc bnc" id="L324" title="All 2 branches missed.">        } else if (stmt instanceof ReturnStatement) {</span>
-<span class="nc" id="L325">            ReturnStatement ret = (ReturnStatement) stmt;</span>
-<span class="nc" id="L326">            checkExpression(ret.expr, localEnv);</span>
+<span class="pc bpc" id="L324" title="1 of 2 branches missed.">        } else if (stmt instanceof ReturnStatement) {</span>
+<span class="fc" id="L325">            ReturnStatement ret = (ReturnStatement) stmt;</span>
+<span class="fc" id="L326">            checkExpression(ret.expr, localEnv);</span>
         }
-<span class="nc" id="L328">    }</span>
+<span class="fc" id="L328">    }</span>
 
     public Type checkExpression(Expression expr, Map&lt;String, Type&gt; localEnv) {
 <span class="fc bfc" id="L331" title="All 2 branches covered.">        if (expr instanceof IntLiteralExpr) {</span>
@@ -374,8 +374,8 @@ class StructInstantiationExpr implements Expression {
 
             // Check no extra fields are given
 <span class="fc bfc" id="L376" title="All 2 branches covered.">            for (String givenField : structExpr.fieldValues.keySet()) {</span>
-<span class="pc bpc" id="L377" title="1 of 2 branches missed.">                if (!def.fields.containsKey(givenField)) {</span>
-<span class="nc" id="L378">                    throw new RuntimeException(&quot;Unexpected field: &quot; + givenField + &quot; in struct instantiation of &quot; + structExpr.structName);</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">                if (!def.fields.containsKey(givenField)) {</span>
+<span class="fc" id="L378">                    throw new RuntimeException(&quot;Unexpected field: &quot; + givenField + &quot; in struct instantiation of &quot; + structExpr.structName);</span>
                 }
 <span class="fc" id="L380">            }</span>
 
@@ -386,9 +386,9 @@ class StructInstantiationExpr implements Expression {
 <span class="fc" id="L386">                Type expected = def.fields.get(field);</span>
 <span class="fc" id="L387">                Type actual = checkExpression(valueExpr, localEnv);</span>
 
-<span class="pc bpc" id="L389" title="1 of 2 branches missed.">                if (!actual.getClass().equals(expected.getClass())) {</span>
-<span class="nc" id="L390">                    throw new RuntimeException(&quot;Type mismatch in field '&quot; + field + &quot;' of struct &quot; + structExpr.structName +</span>
-<span class="nc" id="L391">                        &quot;: expected &quot; + expected.getClass().getSimpleName() + &quot;, got &quot; + actual.getClass().getSimpleName());</span>
+<span class="fc bfc" id="L389" title="All 2 branches covered.">                if (!actual.getClass().equals(expected.getClass())) {</span>
+<span class="fc" id="L390">                    throw new RuntimeException(&quot;Type mismatch in field '&quot; + field + &quot;' of struct &quot; + structExpr.structName +</span>
+<span class="fc" id="L391">                        &quot;: expected &quot; + expected.getClass().getSimpleName() + &quot;, got &quot; + actual.getClass().getSimpleName());</span>
                 }
 <span class="fc" id="L393">            }</span>
 
@@ -400,8 +400,8 @@ class StructInstantiationExpr implements Expression {
         // Handle function call
 <span class="pc bpc" id="L401" title="1 of 2 branches missed.">        if (calleeType instanceof FunctionType) {</span>
 <span class="fc" id="L402">            FunctionType funcType = (FunctionType) calleeType;</span>
-<span class="pc bpc" id="L403" title="1 of 2 branches missed.">            if (call.arguments.size() != funcType.paramTypes.size()) {</span>
-<span class="nc" id="L404">                throw new RuntimeException(&quot;Argument count mismatch in function call&quot;);</span>
+<span class="fc bfc" id="L403" title="All 2 branches covered.">            if (call.arguments.size() != funcType.paramTypes.size()) {</span>
+<span class="fc" id="L404">                throw new RuntimeException(&quot;Argument count mismatch in function call&quot;);</span>
             }
 
 <span class="fc bfc" id="L407" title="All 2 branches covered.">            for (int i = 0; i &lt; call.arguments.size(); i++) {</span>
@@ -455,15 +455,15 @@ class StructInstantiationExpr implements Expression {
 <span class="fc" id="L455">    Type receiverType = checkExpression(mcall.receiver, localEnv);</span>
     
     // Ensure the receiver is a StructType
-<span class="pc bpc" id="L458" title="1 of 2 branches missed.">    if (!(receiverType instanceof StructType)) {</span>
-<span class="nc" id="L459">        throw new RuntimeException(&quot;Method call on non-struct type&quot;);</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">    if (!(receiverType instanceof StructType)) {</span>
+<span class="fc" id="L459">        throw new RuntimeException(&quot;Method call on non-struct type&quot;);</span>
     }
     
 <span class="fc" id="L462">    StructType structType = (StructType) receiverType;</span>
 
     // Try to find the method in the struct's method map
 <span class="fc" id="L465">    Map&lt;String, List&lt;FunctionType&gt;&gt; methods = methodsForType.get(structType);</span>
-<span class="pc bpc" id="L466" title="2 of 4 branches missed.">    if (methods != null &amp;&amp; methods.containsKey(mcall.methodName)) {</span>
+<span class="pc bpc" id="L466" title="1 of 4 branches missed.">    if (methods != null &amp;&amp; methods.containsKey(mcall.methodName)) {</span>
 <span class="fc" id="L467">        List&lt;FunctionType&gt; overloads = methods.get(mcall.methodName);</span>
         
         // Match overloads based on argument types
@@ -492,8 +492,8 @@ class StructInstantiationExpr implements Expression {
     }
     
     // Fallback to check for methods in implementation blocks
-<span class="nc" id="L495">    List&lt;ImplDef&gt; impls = env.impls.get(structType);</span>
-<span class="nc bnc" id="L496" title="All 2 branches missed.">    if (impls != null) {</span>
+<span class="fc" id="L495">    List&lt;ImplDef&gt; impls = env.impls.get(structType);</span>
+<span class="pc bpc" id="L496" title="1 of 2 branches missed.">    if (impls != null) {</span>
 <span class="nc bnc" id="L497" title="All 2 branches missed.">        for (ImplDef impl : impls) {</span>
 <span class="nc" id="L498">            Map&lt;String, List&lt;FunctionType&gt;&gt; methodMap = impl.methods;</span>
             
@@ -528,12 +528,12 @@ class StructInstantiationExpr implements Expression {
     }
 
     // If no matching method found, throw an exception
-<span class="nc" id="L531">    throw new RuntimeException(&quot;Method &quot; + mcall.methodName + &quot; not found for struct &quot; + structType.name);</span>
+<span class="fc" id="L531">    throw new RuntimeException(&quot;Method &quot; + mcall.methodName + &quot; not found for struct &quot; + structType.name);</span>
 <span class="pc bpc" id="L532" title="1 of 2 branches missed.">    } else if (expr instanceof FieldAccessExpr f) {</span>
 <span class="fc" id="L533">        Type receiverType = checkExpression(f.receiver, localEnv);</span>
     
-<span class="pc bpc" id="L535" title="1 of 2 branches missed.">        if (!(receiverType instanceof StructType)) {</span>
-<span class="nc" id="L536">            throw new RuntimeException(&quot;Field access on non-struct type: &quot; + receiverType);</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">        if (!(receiverType instanceof StructType)) {</span>
+<span class="fc" id="L536">            throw new RuntimeException(&quot;Field access on non-struct type: &quot; + receiverType);</span>
         }
     
 <span class="fc" id="L539">        StructType st = (StructType) receiverType;</span>

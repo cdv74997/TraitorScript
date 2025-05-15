@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 
 
-import static org.junit.jupiter.api.Assertions.assertTrue; 
+
 
 import org.junit.jupiter.api.Test; 
 
@@ -791,6 +791,352 @@ public class TypeCheckerTest {
     
         assertThrows(RuntimeException.class, () -> checker.checkExpression(call, new HashMap<>()));
     }
+
+    @Test
+    void testStructInstantiationMissingField() {
+        TypeChecker checker = new TypeChecker();
+        StructDef user = new StructDef("User", Map.of("id", new IntType(), "active", new BooleanType()));
+        checker.checkStruct(user);
+    
+        // Missing "active" field
+        Expression expr = new StructInstantiationExpr("User", Map.of("id", new IntLiteralExpr(123)));
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    void testStructInstantiationExtraField() {
+        TypeChecker checker = new TypeChecker();
+        StructDef user = new StructDef("User", Map.of("id", new IntType()));
+        checker.checkStruct(user);
+    
+        Expression expr = new StructInstantiationExpr("User", Map.of(
+            "id", new IntLiteralExpr(1),
+            "extra", new IntLiteralExpr(42)
+        ));
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    void testCorrectMethodOverloadSelected() {
+        TypeChecker checker = new TypeChecker();
+    
+        checker.checkTrait(new TraitDef("Show", Map.of("toString", new FunctionType(List.of(), new IntType()))));
+    
+        StructDef person = new StructDef("Person", Map.of());
+        checker.checkStruct(person);
+    
+        Map<String, List<FunctionType>> methods = new HashMap<>();
+        methods.put("toString", List.of(
+            new FunctionType(List.of(), new IntType()),
+            new FunctionType(List.of(new IntType()), new BooleanType())
+        ));
+        checker.checkImpl(new ImplDef("Show", new StructType("Person"), methods));
+    
+        Expression expr = new MethodCallExpr(
+            new StructInstantiationExpr("Person", Map.of()),
+            "toString",
+            List.of()
+        );
+    
+        Type result = checker.checkExpression(expr, new HashMap<>());
+        assertTrue(result instanceof IntType, "Expected IntType from no-arg overload");
+    }
+
+    @Test
+    void testFieldAccessFromNonStructThrows() {
+        TypeChecker checker = new TypeChecker();
+    
+        Expression expr = new FieldAccessExpr(new IntLiteralExpr(10), "nonexistent");
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    void testMethodCallOnPrimitiveThrows() {
+        TypeChecker checker = new TypeChecker();
+    
+        Expression expr = new MethodCallExpr(
+            new IntLiteralExpr(42),
+            "nonexistentMethod",
+            List.of()
+        );
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    void testFunctionCallWithTooManyArguments() {
+        TypeChecker checker = new TypeChecker();
+        FunctionType funcType = new FunctionType(List.of(new IntType()), new IntType());
+        Map<String, Type> env = new HashMap<>();
+        env.put("f", funcType);
+    
+        Expression call = new CallExpr(
+            new VariableExpr("f"),
+            List.of(new IntLiteralExpr(1), new IntLiteralExpr(2)) // Extra argument
+        );
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(call, env));
+    }
+
+    @Test
+    void testTraitDispatchMultipleImpls() {
+        TypeChecker checker = new TypeChecker();
+    
+        checker.checkTrait(new TraitDef("Speak", Map.of("say", new FunctionType(List.of(), new IntType()))));
+    
+        checker.checkStruct(new StructDef("Dog", Map.of()));
+        checker.checkStruct(new StructDef("Cat", Map.of()));
+    
+        checker.checkImpl(new ImplDef("Speak", new StructType("Dog"), Map.of("say", List.of(
+            new FunctionType(List.of(), new IntType())
+        ))));
+    
+        checker.checkImpl(new ImplDef("Speak", new StructType("Cat"), Map.of("say", List.of(
+            new FunctionType(List.of(), new IntType())
+        ))));
+    
+        Expression dogExpr = new MethodCallExpr(new StructInstantiationExpr("Dog", Map.of()), "say", List.of());
+        Expression catExpr = new MethodCallExpr(new StructInstantiationExpr("Cat", Map.of()), "say", List.of());
+    
+        assertTrue(checker.checkExpression(dogExpr, new HashMap<>()) instanceof IntType);
+        assertTrue(checker.checkExpression(catExpr, new HashMap<>()) instanceof IntType);
+    }
+
+    @Test
+    void testErrorMessageIncludesExpectedAndActualType() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Declare variable x: Int but assign it a Boolean
+        Param param = new Param("x", new IntType());
+        Expression expr = new BooleanLiteralExpr(true);
+        Statement stmt = new LetStatement(param, expr);
+    
+        RuntimeException ex = assertThrows(RuntimeException.class, () ->
+            checker.checkStatement(stmt, new HashMap<>())
+        );
+    
+        String msg = ex.getMessage();
+        assertTrue(msg.contains("expected"), "Error message should mention 'expected'");
+        assertTrue(msg.contains("IntType"), "Error message should mention 'IntType'");
+        assertTrue(msg.toLowerCase().contains("boolean") || msg.contains("BooleanLiteralExpr"), 
+                   "Error message should mention boolean type or expression");
+    }
+
+    @Test
+    public void testTraitNotImplementedShouldError() {
+        // Define trait "Useless" with one method "fail"
+        TraitDef t = new TraitDef("Useless", Map.of(
+            "fail", new FunctionType(
+                Arrays.asList(new IntType()), // param types
+                new IntType()                 // return type
+            )
+        ));
+    
+        // Define a struct "Lonely" with no fields
+        StructDef s = new StructDef("Lonely", new HashMap<>());
+    
+        // Register trait and struct in the typechecker
+        TypeChecker checker = new TypeChecker();
+        checker.checkTrait(t);
+        checker.checkStruct(s);
+    
+        // Create a method call expression: l.fail(1)
+        VariableExpr l = new VariableExpr("l");
+        MethodCallExpr call = new MethodCallExpr(l, "fail", Arrays.asList(new IntLiteralExpr(1)));
+    
+        // Setup local environment with variable l of type Lonely
+        Map<String, Type> localEnv = new HashMap<>();
+        localEnv.put("l", new StructType("Lonely"));
+    
+        // Expect runtime error because Lonely does NOT implement trait Useless
+        assertThrows(RuntimeException.class, () -> {
+            checker.checkExpression(call, localEnv);
+        });
+    }
+
+    @Test
+    public void testReturnStatementTypeCheck() {
+        TypeChecker checker = new TypeChecker();
+    
+        FunctionDef func = new FunctionDef(
+            "foo",
+            Arrays.asList(new Param("x", new IntType())),
+            new IntType(),
+            Arrays.asList(new ReturnStatement(new IntLiteralExpr(42)))
+        );
+    
+        Map<String, Type> vars = new HashMap<>();
+    
+        for (Statement stmt : func.body) {
+            checker.checkStatement(stmt, vars);
+        }
+    }
+
+    @Test
+    public void testStructFieldTypeMismatch() {
+        TypeChecker checker = new TypeChecker();
+        
+        // struct Data { val: Int }
+        checker.checkStruct(new StructDef("Data", Map.of("val", new IntType())));
+    
+        // Instantiate with wrong type
+        Map<String, Expression> fields = new HashMap<>();
+        fields.put("val", new BooleanLiteralExpr(true)); // Should be Int
+        StructInstantiationExpr expr = new StructInstantiationExpr("Data", fields);
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    public void testMethodCallOnStructWithoutTrait() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Define struct
+        checker.checkStruct(new StructDef("Empty", Map.of()));
+    
+        // Environment
+        Map<String, Type> env = new HashMap<>();
+        env.put("e", new StructType("Empty"));
+    
+        // Attempt to call undefined method
+        MethodCallExpr call = new MethodCallExpr(new VariableExpr("e"), "unknown", List.of());
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(call, env));
+    }
+
+    @Test
+    public void testMissingStructFieldInInstantiation() {
+        TypeChecker checker = new TypeChecker();
+        checker.checkStruct(new StructDef("Box", Map.of("x", new IntType(), "y", new IntType())));
+    
+        // Missing "y"
+        Map<String, Expression> fields = new HashMap<>();
+        fields.put("x", new IntLiteralExpr(1));
+        StructInstantiationExpr expr = new StructInstantiationExpr("Box", fields);
+    
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    public void testExtraStructFieldInInstantiation() {
+        TypeChecker checker = new TypeChecker();
+        checker.checkStruct(new StructDef("Box", Map.of("x", new IntType())));
+    
+        Map<String, Expression> fields = new HashMap<>();
+        fields.put("x", new IntLiteralExpr(1));
+        fields.put("extra", new IntLiteralExpr(2)); // Extra field
+    
+        StructInstantiationExpr expr = new StructInstantiationExpr("Box", fields);
+        assertThrows(RuntimeException.class, () -> checker.checkExpression(expr, new HashMap<>()));
+    }
+
+    @Test
+    public void testTraitImplMissingMethod() {
+        TypeChecker checker = new TypeChecker();
+    
+        Map<String, FunctionType> methods = new HashMap<>();
+        methods.put("show", new FunctionType(List.of(), new VoidType()));
+        TraitDef trait = new TraitDef("Show", methods);
+        checker.checkTrait(trait);
+    
+        StructDef s = new StructDef("Foo", new HashMap<>());
+        checker.checkStruct(s);
+    
+        // Missing "show" method in impl
+        ImplDef impl = new ImplDef("Show", new StructType("Foo"), new HashMap<>());
+        assertThrows(RuntimeException.class, () -> checker.checkImpl(impl));
+    }
+
+    @Test
+    public void testDuplicateMethodInTrait() {
+        TypeChecker checker = new TypeChecker();
+    
+        Map<String, FunctionType> methods = new HashMap<>();
+        FunctionType f = new FunctionType(List.of(), new VoidType());
+        methods.put("dup", f);
+        methods.put("dup", f); // Simulated duplicate (same key)
+    
+        TraitDef trait = new TraitDef("DupTrait", methods);
+        // Should not throw here unless explicit logic checks for duplicate keys
+        assertDoesNotThrow(() -> checker.checkTrait(trait));
+    }
+
+    @Test
+    public void testUndefinedVariableThrows() {
+        TypeChecker checker = new TypeChecker();
+        Map<String, Type> env = new HashMap<>();
+        VariableExpr varExpr = new VariableExpr("notDeclared");
+    
+        assertThrows(RuntimeException.class, () -> {
+            checker.checkExpression(varExpr, env);
+        });
+    }
+
+    @Test
+    public void testMethodCallUnknownMethod() {
+        TypeChecker checker = new TypeChecker();
+    
+        // Setup struct and trait
+        Map<String, Type> fields = Map.of("value", new IntType());
+        StructDef s = new StructDef("MyStruct", new HashMap<>(fields));
+        checker.checkStruct(s);
+    
+        TraitDef t = new TraitDef("MyTrait", new HashMap<>());
+        checker.checkTrait(t);
+    
+        ImplDef impl = new ImplDef("MyTrait", new StructType("MyStruct"), new HashMap<>());
+        checker.checkImpl(impl);
+    
+        Map<String, Type> env = Map.of("x", new StructType("MyStruct"));
+        VariableExpr xVar = new VariableExpr("x");
+    
+        // Call method that does not exist on trait impl
+        MethodCallExpr call = new MethodCallExpr(xVar, "nonexistentMethod", List.of());
+    
+        assertThrows(RuntimeException.class, () -> {
+            checker.checkExpression(call, env);
+        });
+    }
+
+
+
+   
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+   
+
+
+
+
+
+
+
+
 
 
 

@@ -7,229 +7,70 @@ import java.util.*;
 
 
 
-class VoidType implements Type {}
-class BooleanType implements Type {}
-
-class MethodDef {
-    String name;
-    List<Param> params;
-    Type returnType;
-    List<Statement> body;
-
-    MethodDef(String name, List<Param> params, Type returnType, List<Statement> body) {
-        this.name = name;
-        this.params = params;
-        this.returnType = returnType;
-        this.body = body;
-    }
-}
-
-class FieldAccessExpr implements Expression {
-    public final Expression receiver;
-    public final String field;
-
-    public FieldAccessExpr(Expression receiver, String field) {
-        this.receiver = receiver;
-        this.field = field;
-    }
-}
-
-class MethodCallExpr implements Expression {
-    Expression receiver;
-    String methodName;
-    List<Expression> arguments;
-
-    MethodCallExpr(Expression receiver, String methodName, List<Expression> arguments) {
-        this.receiver = receiver;
-        this.methodName = methodName;
-        this.arguments = arguments;
-    }
-}
-
-
-class CallExpr implements Expression {
-    VariableExpr callee;
-    List<Expression> arguments;
-
-    CallExpr(VariableExpr callee, List<Expression> arguments) {
-        this.callee = callee;
-        this.arguments = arguments;
-    }
-}
-
-
-class StructType implements Type {
-    String name;
-    StructType(String name) { this.name = name; }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof StructType)) return false;
-        StructType other = (StructType) obj;
-        return this.name.equals(other.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "StructType(" + name + ")";
-    }
-}
-
-class FunctionType implements Type {
-    List<Type> paramTypes;
-    Type returnType;
-
-    FunctionType(List<Type> paramTypes, Type returnType) {
-        this.paramTypes = paramTypes;
-        this.returnType = returnType;
-    }
-}
-
-class BooleanLiteralExpr implements Expression {
-    boolean value;
-
-    BooleanLiteralExpr(boolean value) {
-        this.value = value;
-    }
-}
 
 
 
-class StructDef {
-    String name;
-    Map<String, Type> fields;
 
-    StructDef(String name, Map<String, Type> fields) {
-        this.name = name;
-        this.fields = fields;
-    }
-}
 
-class TraitDef {
-    String name;
-    Map<String, FunctionType> methods;
 
-    TraitDef(String name, Map<String, FunctionType> methods) {
-        this.name = name;
-        this.methods = methods;
-    }
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  
-class ImplDef {
-    String traitName;
-    Type forType;
-    Map<String, List<FunctionType>> methods;
-
-    //Map<String, FunctionType> methods;
-
-    ImplDef(String traitName, Type forType, Map<String, List<FunctionType>> methods) {
-        this.traitName = traitName;
-        this.forType = forType;
-        this.methods = methods;
-    }
-}
-
-class FunctionDef {
-    String name;
-    List<Param> params;
-    Type returnType;
-    List<Statement> body;
-
-    FunctionDef(String name, List<Param> params, Type returnType, List<Statement> body) {
-        this.name = name;
-        this.params = params;
-        this.returnType = returnType;
-        this.body = body;
-    }
-}
-
-class Param {
-    String name;
-    Type type;
-
-    Param(String name, Type type) {
-        this.name = name;
-        this.type = type;
-    }
-}
 
 
 
 
 
-class LetStatement implements Statement {
-    Param param;
-    Expression expr;
-
-    LetStatement(Param param, Expression expr) {
-        this.param = param;
-        this.expr = expr;
-    }
-}
-
-class AssignStatement implements Statement {
-    String var;
-    Expression expr;
-
-    AssignStatement(String var, Expression expr) {
-        this.var = var;
-        this.expr = expr;
-    }
-}
-
-class ReturnStatement implements Statement {
-    Expression expr;
-
-    ReturnStatement(Expression expr) {
-        this.expr = expr;
-    }
-}
-
-class VariableExpr implements Expression {
-    String name;
-    VariableExpr(String name) { this.name = name; }
-}
-
-
-class BinaryExpr implements Expression {
-    String op;
-    Expression left, right;
-
-    BinaryExpr(String op, Expression left, Expression right) {
-        this.op = op;
-        this.left = left;
-        this.right = right;
-    }
-}
-
-class StructInstantiationExpr implements Expression {
-    String structName;
-    Map<String, Expression> fieldValues;
-
-    StructInstantiationExpr(String structName, Map<String, Expression> fieldValues) {
-        this.structName = structName;
-        this.fieldValues = fieldValues;
-    }
-}
 
 
 
-class TypeEnvironment {
-    Map<String, Type> variables = new HashMap<>();
-    Map<String, StructDef> structs = new HashMap<>();
-    Map<String, TraitDef> traits = new HashMap<>();
-    Map<String, List<ImplDef>> impls = new HashMap<>();
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 public class TypeChecker {
     // Store ImplDefs by trait name
     public Map<String, ImplDef> implDefs = new HashMap<>();
+    private boolean insideLoop = false;
 
     //private final Map<Type, Map<String, FunctionType>> methodsForType = new HashMap<>();
     //private final Map<String, List<FunctionType>> methodsForType = new HashMap<>();
@@ -300,11 +141,21 @@ public class TypeChecker {
             localEnv.put(p.name, p.type);
         }
         for (Statement stmt : func.body) {
-            checkStatement(stmt, localEnv);
+            checkStatement(stmt, localEnv, insideLoop);
         }
     }
 
-    public void checkStatement(Statement stmt, Map<String, Type> localEnv) {
+    public void checkMethod(MethodDef func) {
+        Map<String, Type> localEnv = new HashMap<>();
+        for (Param p : func.params) {
+            localEnv.put(p.name, p.type);
+        }
+        for (Statement stmt : func.body) {
+            checkStatement(stmt, localEnv, insideLoop);
+        }
+    }
+
+    public void checkStatement(Statement stmt, Map<String, Type> localEnv, boolean insideLoop) {
         if (stmt instanceof LetStatement) {
             LetStatement let = (LetStatement) stmt;
             Type exprType = checkExpression(let.expr, localEnv);
@@ -324,6 +175,38 @@ public class TypeChecker {
         } else if (stmt instanceof ReturnStatement) {
             ReturnStatement ret = (ReturnStatement) stmt;
             checkExpression(ret.expr, localEnv);
+        } else if (stmt instanceof IfStatement ifs) {
+            Type condType = checkExpression(ifs.condition, localEnv);
+            if (!(condType instanceof BooleanType)) {
+                throw new RuntimeException("Condition must be boolean");
+            }
+            checkStatement(ifs.thenBranch, localEnv, insideLoop);
+            if (ifs.elseBranch != null) {
+                checkStatement(ifs.elseBranch, localEnv, insideLoop);
+            }
+    
+        } else if (stmt instanceof WhileStatement ws) {
+            Type condType = checkExpression(ws.condition, localEnv);
+            if (!(condType instanceof BooleanType)) {
+                throw new RuntimeException("Condition must be boolean");
+            }
+            boolean previousInsideLoop = insideLoop;
+            insideLoop = true;
+            checkStatement(ws.body, localEnv, true);
+            insideLoop = previousInsideLoop;
+    
+        } else if (stmt instanceof BlockStatement bs) {
+            for (Statement s : bs.statements) {
+                checkStatement(s, localEnv, insideLoop);
+            }
+    
+        } else if (stmt instanceof BreakStatement) {
+            if (!insideLoop) {
+                throw new RuntimeException("Break statement not inside a loop");
+            }
+    
+        } else {
+            throw new RuntimeException("Unsupported statement type: " + stmt.getClass().getSimpleName());
         }
     }
 

@@ -915,7 +915,7 @@ public class TypeCheckerTest {
         Statement stmt = new LetStatement(param, expr);
     
         RuntimeException ex = assertThrows(RuntimeException.class, () ->
-            checker.checkStatement(stmt, new HashMap<>())
+            checker.checkStatement(stmt, new HashMap<>(), false)
         );
     
         String msg = ex.getMessage();
@@ -971,7 +971,7 @@ public class TypeCheckerTest {
         Map<String, Type> vars = new HashMap<>();
     
         for (Statement stmt : func.body) {
-            checker.checkStatement(stmt, vars);
+            checker.checkStatement(stmt, vars, false);
         }
     }
 
@@ -1099,8 +1099,171 @@ public class TypeCheckerTest {
             checker.checkExpression(call, env);
         });
     }
+    
+    @Test
+    public void testMethodDefinitionInsideStruct() {
+        TypeChecker typeChecker = new TypeChecker();
+    
+        // Register trait
+        TraitDef trait = new TraitDef("OneGetter", Map.of(
+            "getOne", new FunctionType(List.of(), new IntType())
+        ));
+        typeChecker.checkTrait(trait);
+    
+        // Register struct
+        StructDef calculatorStruct = new StructDef("Calculator", Map.of());
+        typeChecker.checkStruct(calculatorStruct);
+    
+        // Create MethodDef
+        List<Param> parameters = List.of();
+        List<Statement> methodBody = List.of(new ReturnStatement(new IntLiteralExpr(1)));
+        MethodDef methodDefinition = new MethodDef("getOne", parameters, new IntType(), methodBody);
+    
+        // Convert MethodDef to FunctionType
+        FunctionType functionType = new FunctionType(List.of(), new IntType());
+    
+        // StructType for "Calculator"
+        StructType calculatorType = new StructType("Calculator");
+    
+        // Map method name to List<FunctionType>
+        Map<String, List<FunctionType>> methodsMap = Map.of(
+            "getOne", List.of(functionType)
+        );
+    
+        // Create ImplDef with proper Type
+        ImplDef impl = new ImplDef("OneGetter", calculatorType, methodsMap);
+    
+        // Register ImplDef
+        typeChecker.checkImpl(impl);
+    
+        // Check method body
+        typeChecker.checkMethod(methodDefinition);
+    
+        // Create method call expression
+        Expression methodCall = new MethodCallExpr(
+            new StructInstantiationExpr("Calculator", Map.of()),
+            "getOne",
+            List.of()
+        );
+    
+        // Type check
+        Type resultType = typeChecker.checkExpression(methodCall, new HashMap<>());
+    
+        // Assert IntType
+        assertTrue(resultType instanceof IntType);
+    }
+
+    @Test
+    public void testValidIfStatement() {
+        try {
+            TypeChecker typeChecker = new TypeChecker();
+            Expression condition = new BooleanLiteralExpr(true);
+            Statement thenBranch = new ReturnStatement(new IntLiteralExpr(1));
+            Statement elseBranch = new ReturnStatement(new IntLiteralExpr(2));
+            IfStatement stmt = new IfStatement(condition, thenBranch, elseBranch);
+    
+            typeChecker.checkStatement(stmt, new HashMap<>(), false);
+    
+            // Test passes if no exception thrown
+            assertTrue(true);
+        } catch (RuntimeException e) {
+            fail("TypeChecker threw exception on valid if statement: " + e.getMessage());
+        }
+    }
+
+    
+    @Test
+    public void testInvalidIfConditionType() {
+        TypeChecker typeChecker = new TypeChecker();
+        Expression condition = new IntLiteralExpr(42); // Not boolean!
+        Statement thenBranch = new ReturnStatement(new IntLiteralExpr(1));
+        IfStatement stmt = new IfStatement(condition, thenBranch, null);
+    
+        assertThrows(RuntimeException.class, () -> {
+            typeChecker.checkStatement(stmt, new HashMap<>(), false);
+        });
+    }
+
+    @Test
+    public void testValidWhileStatement() {
+        try {
+            TypeChecker typeChecker = new TypeChecker();
+            Expression condition = new BooleanLiteralExpr(true);
+            Statement body = new ReturnStatement(new IntLiteralExpr(1));
+            WhileStatement stmt = new WhileStatement(condition, body);
+    
+            typeChecker.checkStatement(stmt, new HashMap<>(), false);
+            assertTrue(true);
+        } catch (RuntimeException e) {
+            fail("Unexpected exception: " + e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testInvalidWhileConditionType() {
+        TypeChecker typeChecker = new TypeChecker();
+        Expression condition = new IntLiteralExpr(0); // Not boolean!
+        Statement body = new ReturnStatement(new IntLiteralExpr(1));
+        WhileStatement stmt = new WhileStatement(condition, body);
+    
+        assertThrows(RuntimeException.class, () -> {
+            typeChecker.checkStatement(stmt, new HashMap<>(), false);
+        });
+    }
+
+    @Test
+    public void testValidBlockStatement() {
+        try {
+            TypeChecker typeChecker = new TypeChecker();
+            List<Statement> stmts = new ArrayList<>();
+            stmts.add(new LetStatement(new Param("x", new IntType()), new IntLiteralExpr(1)));
+            stmts.add(new AssignStatement("x", new IntLiteralExpr(2)));
+            stmts.add(new ReturnStatement(new IntLiteralExpr(3)));
+            BlockStatement block = new BlockStatement(stmts);
+    
+            typeChecker.checkStatement(block, new HashMap<>(), false);
+            assertTrue(true);
+        } catch (RuntimeException e) {
+            fail("Unexpected exception in block statement: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testBreakStatementIsAccepted() {
+        try {
+            TypeChecker typeChecker = new TypeChecker();
+            BreakStatement stmt = new BreakStatement();
+    
+            typeChecker.checkStatement(stmt, new HashMap<>(), true);
+            assertTrue(true); // No exception means test passes
+        } catch (RuntimeException e) {
+            fail("Break statement should not throw an exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testBreakStatementOutsideLoopFails() {
+        TypeChecker typeChecker = new TypeChecker();
+        BreakStatement stmt = new BreakStatement();
+    
+        assertThrows(RuntimeException.class, () -> {
+            typeChecker.checkStatement(stmt, new HashMap<>(), false);
+        });
+    }
 
 
+
+
+
+
+
+
+
+
+
+
+    
+    
 
    
 

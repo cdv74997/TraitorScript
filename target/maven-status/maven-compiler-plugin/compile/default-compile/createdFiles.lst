@@ -2,6 +2,7 @@ typechecker\Statement.class
 typechecker\CallExpr.class
 tokenizer\Tokenizer.class
 tokenizer\ReturnToken.class
+typechecker\BreakStatement.class
 tokenizer\MinusToken.class
 typechecker\TypeEnvironment.class
 tokenizer\LetToken.class
@@ -21,6 +22,7 @@ tokenizer\PrintlnToken.class
 typechecker\LetStatement.class
 typechecker\Param.class
 typechecker\TypeChecker.class
+typechecker\IfStatement.class
 tokenizer\EqualsToken.class
 typechecker\FunctionDef.class
 typechecker\StructInstantiationExpr.class
@@ -40,6 +42,7 @@ tokenizer\SlashToken.class
 tokenizer\RArrowToken.class
 typechecker\FieldAccessExpr.class
 tokenizer\VoidToken.class
+typechecker\WhileStatement.class
 tokenizer\StructToken.class
 typechecker\StructType.class
 tokenizer\PlusToken.class
@@ -51,10 +54,12 @@ tokenizer\ElseToken.class
 tokenizer\SelfToken.class
 tokenizer\Token.class
 tokenizer\DotToken.class
+typechecker\BlockStatement.class
 typechecker\FunctionType.class
 tokenizer\TrueToken.class
 typechecker\MethodDef.class
 tokenization_example\TokenizerException.class
+typechecker\Definition.class
 tokenizer\StarToken.class
 tokenizer\NewToken.class
 tokenizer\SemicolonToken.class

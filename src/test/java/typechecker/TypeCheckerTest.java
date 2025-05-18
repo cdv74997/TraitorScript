@@ -1251,6 +1251,86 @@ public class TypeCheckerTest {
         });
     }
 
+    @Test
+    public void testAddAndRetrieveVariable() {
+        TypeEnvironment env = new TypeEnvironment();
+        Type intType = new IntType();
+        env.variables.put("x", intType);
+
+        assertTrue(env.variables.containsKey("x"));
+        assertEquals(intType, env.variables.get("x"));
+    }
+
+    @Test
+    public void testAddAndRetrieveStruct() {
+        TypeEnvironment env = new TypeEnvironment();
+        StructDef struct = new StructDef("Point", Map.of("x", new IntType(), "y", new IntType()));
+        env.structs.put("Point", struct);
+
+        assertTrue(env.structs.containsKey("Point"));
+        assertEquals(struct, env.structs.get("Point"));
+        assertEquals("Point", env.structs.get("Point").name);
+    }
+
+    @Test
+    public void testAddAndRetrieveTrait() {
+        TypeEnvironment env = new TypeEnvironment();
+        TraitDef trait = new TraitDef("Drawable", Map.of());
+        env.traits.put("Drawable", trait);
+
+        assertTrue(env.traits.containsKey("Drawable"));
+        assertEquals(trait, env.traits.get("Drawable"));
+    }
+
+    @Test
+    public void testAddAndRetrieveImpl() {
+        TypeEnvironment env = new TypeEnvironment();
+        FunctionType fnType = new FunctionType(List.of(), new VoidType());
+        ImplDef impl = new ImplDef("Drawable", new StructType("Circle"), Map.of("draw", List.of(fnType)));
+        env.impls.put("Circle", List.of(impl));
+
+        assertTrue(env.impls.containsKey("Circle"));
+        assertEquals(1, env.impls.get("Circle").size());
+        assertEquals("Drawable", env.impls.get("Circle").get(0).traitName);
+    }
+
+    @Test
+    public void returnsCorrectMethodType() {
+        TypeChecker typeChecker = new TypeChecker();
+        TypeEnvironment env = new TypeEnvironment();
+        String traitName = "Drawable";
+        String methodName = "draw";
+        Type receiverType = new StructType("Circle");
+        FunctionType expected = new FunctionType(List.of(), new VoidType());
+        ImplDef impl = new ImplDef(traitName, receiverType, Map.of(methodName, List.of(expected)));
+        env.impls.put(traitName, List.of(impl));
+    
+        FunctionType result = typeChecker.getTraitMethodType(traitName, methodName, receiverType);
+    
+        assertEquals(null, result);
+    }
+
+    @Test
+    public void throwsWhenStructInstantiationHasUnexpectedField() {
+        TypeChecker typeChecker = new TypeChecker();
+        Map<String, Type> structFields = Map.of("x", new IntType());
+        StructDef def = new StructDef("Point", structFields);
+        typeChecker.env.structs.put("Point", def);
+    
+        Map<String, Expression> givenFields = new HashMap<>();
+        givenFields.put("x", new IntLiteralExpr(1));
+        givenFields.put("y", new IntLiteralExpr(2)); // unexpected field
+    
+        StructInstantiationExpr expr = new StructInstantiationExpr("Point", givenFields);
+    
+        assertThrows(RuntimeException.class, () -> typeChecker.checkExpression(expr, Map.of()));
+    }
+    
+    
+
+
+    
+
 
 
 
